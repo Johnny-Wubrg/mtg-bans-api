@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Data", "src\MtgBans
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Services", "src\MtgBans.Services\MtgBans.Services.csproj", "{1DC31D4D-E0B3-419B-80F7-FD949116395B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Models", "src\MtgBans.Models\MtgBans.Models.csproj", "{7FD626FE-827C-4EB0-9E7A-9E323127F7A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Scryfall", "src\MtgBans.Scryfall\MtgBans.Scryfall.csproj", "{204D74E3-AF57-4D19-A866-41532FB073F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FD626FE-827C-4EB0-9E7A-9E323127F7A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FD626FE-827C-4EB0-9E7A-9E323127F7A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FD626FE-827C-4EB0-9E7A-9E323127F7A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FD626FE-827C-4EB0-9E7A-9E323127F7A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{204D74E3-AF57-4D19-A866-41532FB073F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{204D74E3-AF57-4D19-A866-41532FB073F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{204D74E3-AF57-4D19-A866-41532FB073F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{204D74E3-AF57-4D19-A866-41532FB073F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

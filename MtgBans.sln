@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Api", "src\MtgBans.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Data", "src\MtgBans.Data\MtgBans.Data.csproj", "{3D6DFB92-A776-43C9-B4CB-511B4BCD963D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtgBans.Services", "src\MtgBans.Services\MtgBans.Services.csproj", "{1DC31D4D-E0B3-419B-80F7-FD949116395B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{3D6DFB92-A776-43C9-B4CB-511B4BCD963D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D6DFB92-A776-43C9-B4CB-511B4BCD963D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D6DFB92-A776-43C9-B4CB-511B4BCD963D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DC31D4D-E0B3-419B-80F7-FD949116395B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

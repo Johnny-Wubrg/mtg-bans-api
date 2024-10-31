@@ -7,4 +7,5 @@ public class MtgBansContext(DbContextOptions<MtgBansContext> options) : DbContex
 {
   public DbSet<Format> Formats { get; set; }
   public DbSet<Card> Cards { get; set; }
+  public DbSet<Announcement> Announcements { get; set; }
 }

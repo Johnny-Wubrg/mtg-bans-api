@@ -18,5 +18,6 @@ public class CardLegalityEvent
   public int Id { get; set; }
 
   public DateOnly Date { get; set; }
+  public Format Format { get; set; }
   public CardLegalityEventType Type { get; set; }
 }

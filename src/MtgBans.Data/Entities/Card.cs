@@ -11,7 +11,9 @@ public class Card
   public string Name { get; set; }
 
   [Required, MaxLength(100)]
-  public string ScryfallImageUrl { get; set; }
+  public Uri ScryfallImageUri { get; set; }
+  
+  public Uri ScryfallUri { get; set; }
 
   public ICollection<CardLegalityEvent> LegalityEvents { get; set; }
 }

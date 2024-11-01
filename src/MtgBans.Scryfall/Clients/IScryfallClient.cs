@@ -6,6 +6,6 @@ namespace MtgBans.Scryfall.Clients;
 public interface IScryfallClient
 {
   
-  [Get("/cards/named")]
-  Task<ScryfallCard> GetCardByName(string exact);
+  [Get("/cards/search?q=!%22{cardName}%22&order=released&dir=asc&unique=prints")]
+  Task<ScryfallDataset<ScryfallCard>> GetCardByName(string cardName, CancellationToken cancellationToken = default);
 }

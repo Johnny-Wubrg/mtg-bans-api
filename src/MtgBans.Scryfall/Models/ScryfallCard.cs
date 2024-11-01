@@ -12,7 +12,7 @@ public record ScryfallImages
 
 public record ScryfallCard
 {
-  public Guid Id { get; set; }
+  public Guid OracleId { get; set; }
   public string Name { get; set; } 
   public DateOnly ReleasedAt { get; set; }
   public Uri ScryfallUri { get; set; }

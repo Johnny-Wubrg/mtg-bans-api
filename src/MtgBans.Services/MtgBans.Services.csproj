@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MtgBans.Data\MtgBans.Data.csproj" />
+      <ProjectReference Include="..\MtgBans.Models\MtgBans.Models.csproj" />
       <ProjectReference Include="..\MtgBans.Scryfall\MtgBans.Scryfall.csproj" />
     </ItemGroup>
 

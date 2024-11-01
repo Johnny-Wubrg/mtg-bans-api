@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MtgBans.Models\MtgBans.Models.csproj" />
       <ProjectReference Include="..\MtgBans.Services\MtgBans.Services.csproj" />
     </ItemGroup>
 

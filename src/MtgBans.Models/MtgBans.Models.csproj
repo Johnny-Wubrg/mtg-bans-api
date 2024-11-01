@@ -6,4 +6,8 @@
         <Nullable>disable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MtgBans.Data\MtgBans.Data.csproj" />
+    </ItemGroup>
+
 </Project>

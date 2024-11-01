@@ -9,7 +9,8 @@ namespace MtgBans.Services.Services;
 
 public interface ICardService
 {
-  Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken = default);
+  Task<IEnumerable<CardModel>> ResolveCards(IEnumerable<string> cardNames,
+    CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService
@@ -24,7 +25,7 @@ public class CardService : ICardService
   }
 
   public async Task<IEnumerable<CardModel>> ResolveCards(
-    string[] cardNames,
+    IEnumerable<string> cardNames,
     CancellationToken cancellationToken = default)
   {
     var existingCards = await _context.Cards.Where(c => cardNames.Contains(c.Name)).ToListAsync(cancellationToken);

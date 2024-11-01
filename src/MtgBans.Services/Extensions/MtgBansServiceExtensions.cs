@@ -13,6 +13,7 @@ public static class MtgBansServiceExtensions
   {
     services.AddScryfall(configuration);
     
+    services.AddTransient<IAnnouncementService, AnnouncementService>();
     services.AddTransient<ICardService, CardService>();
     
     services.AddDbContext<MtgBansContext>(options =>

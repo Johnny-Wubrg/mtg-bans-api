@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    [Migration("20241031235005_Announcements")]
-    partial class Announcements
+    [Migration("20241101024506_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,7 +95,7 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("announcement_id");
 
-                    b.Property<Guid?>("CardScryfallId")
+                    b.Property<Guid>("CardScryfallId")
                         .HasColumnType("uuid")
                         .HasColumnName("card_scryfall_id");
 
@@ -186,15 +186,19 @@ namespace MtgBans.Data.Migrations
                         .HasForeignKey("AnnouncementId")
                         .HasConstraintName("fk_card_legality_event_announcements_announcement_id");
 
-                    b.HasOne("MtgBans.Data.Entities.Card", null)
+                    b.HasOne("MtgBans.Data.Entities.Card", "Card")
                         .WithMany("LegalityEvents")
                         .HasForeignKey("CardScryfallId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_card_legality_event_cards_card_scryfall_id");
 
                     b.HasOne("MtgBans.Data.Entities.Format", "Format")
                         .WithMany()
                         .HasForeignKey("FormatId")
                         .HasConstraintName("fk_card_legality_event_formats_format_id");
+
+                    b.Navigation("Card");
 
                     b.Navigation("Format");
                 });

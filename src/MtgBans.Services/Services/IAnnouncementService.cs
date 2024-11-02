@@ -8,7 +8,7 @@ namespace MtgBans.Services.Services;
 
 public interface IAnnouncementService
 {
-  Task Publish(PublishAnnouncementModel model);
+  Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken);
 }
 
 public class AnnouncementService : IAnnouncementService
@@ -22,7 +22,7 @@ public class AnnouncementService : IAnnouncementService
     _context = context;
   }
 
-  public async Task Publish(PublishAnnouncementModel model)
+  public async Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken)
   {
     var announcement = new Announcement
     {
@@ -33,9 +33,9 @@ public class AnnouncementService : IAnnouncementService
     };
 
     var cardNames = model.Changes.SelectMany(e => e.Cards).Distinct();
-    var cards = await _cardService.ResolveCards(cardNames);
+    var cards = await _cardService.ResolveCards(cardNames, cancellationToken);
     var cardModels = cards as CardModel[] ?? cards.ToArray();
-    var formats = await _context.Formats.ToListAsync();
+    var formats = await _context.Formats.ToListAsync(cancellationToken: cancellationToken);
 
     foreach (var change in model.Changes)
     {
@@ -53,7 +53,7 @@ public class AnnouncementService : IAnnouncementService
       }
     }
     
-    await _context.Announcements.AddAsync(announcement);
-    await _context.SaveChangesAsync();
+    await _context.Announcements.AddAsync(announcement, cancellationToken);
+    await _context.SaveChangesAsync(cancellationToken);
   }
 }

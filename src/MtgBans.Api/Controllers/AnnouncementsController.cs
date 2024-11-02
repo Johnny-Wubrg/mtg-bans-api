@@ -15,10 +15,15 @@ public class AnnouncementsController : ControllerBase
     _announcementService = announcementService;
   }
 
+  /// <summary>
+  /// Publish a new announcement
+  /// </summary>
+  /// <param name="model"></param>
   [HttpPost]
-  public async Task<IActionResult> Publish(PublishAnnouncementModel model)
+  [ProducesResponseType(StatusCodes.Status201Created)]
+  public async Task<IActionResult> Publish(PublishAnnouncementModel model, CancellationToken cancellationToken)
   {
-    await _announcementService.Publish(model);
+    await _announcementService.Publish(model, cancellationToken);
     return Created();
   }  
 }

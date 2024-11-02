@@ -15,6 +15,12 @@ public class CardsController : ControllerBase
     _cardService = cardService;
   }
 
+  /// <summary>
+  /// Get card data from database or Scryfall
+  /// </summary>
+  /// <param name="cardNames"></param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
   [HttpPost]
   public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) => _cardService.ResolveCards(cardNames, cancellationToken);
 }

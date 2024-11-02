@@ -12,7 +12,11 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+  c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "MtgBans.Api.xml"));
+  c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "MtgBans.Models.xml"));
+});
 
 builder.Services.AddRouting(options =>
 {

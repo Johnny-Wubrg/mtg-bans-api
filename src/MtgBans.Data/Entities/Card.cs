@@ -13,6 +13,7 @@ public class Card
   [Required, MaxLength(100)]
   public Uri ScryfallImageUri { get; set; }
   
+  [Required, MaxLength(200)]
   public Uri ScryfallUri { get; set; }
 
   public ICollection<CardLegalityEvent> LegalityEvents { get; set; }

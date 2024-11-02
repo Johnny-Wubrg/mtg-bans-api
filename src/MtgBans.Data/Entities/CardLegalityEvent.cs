@@ -23,6 +23,7 @@ public class CardLegalityEvent
   [ForeignKey(nameof(CardScryfallId))]
   public Card Card { get; set; }
 
+  [Required]
   public DateOnly Date { get; set; }
   
   public int? FormatId { get; set; }

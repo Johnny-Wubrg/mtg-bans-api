@@ -19,8 +19,8 @@ public class PublishAnnouncementModel
   /// <summary>
   /// Uri to announcement article, if applicable
   /// </summary>
-  /// <example>https://www.example.com/path-to-announcement</example>
-  public Uri Uri { get; set; }
+  /// <example>["https://www.example.com/path-to-announcement"]</example>
+  public Uri[] Sources { get; set; }
   
   public ICollection<AnnouncementChangeModel> Changes { get; set; }
 }

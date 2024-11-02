@@ -12,7 +12,7 @@ public class Announcement
   [MaxLength(200)]
   public string Summary { get; set; }
   
-  public Uri Uri { get; set; }
+  public Uri[] Sources { get; set; }
   
   public ICollection<CardLegalityEvent> Changes { get; set; }
 }

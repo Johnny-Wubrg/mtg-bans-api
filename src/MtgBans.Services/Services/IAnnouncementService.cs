@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
+using MtgBans.Exceptions;
 using MtgBans.Models.Announcements;
 using MtgBans.Models.Cards;
 
@@ -27,7 +28,7 @@ public class AnnouncementService : IAnnouncementService
     var announcement = new Announcement
     {
       Summary = model.Summary,
-      Uri = model.Uri,
+      Sources = model.Sources,
       Date = model.Date,
       Changes = new List<CardLegalityEvent>()
     };
@@ -39,11 +40,15 @@ public class AnnouncementService : IAnnouncementService
 
     foreach (var change in model.Changes)
     {
+      var format = formats.FirstOrDefault(e => e.Name == change.Format);
+
+      if (format is null) throw new InvalidEntryOperation(nameof(change.Format), change.Format);
+      
       foreach (var card in change.Cards)
       {
         var evt = new CardLegalityEvent
         {
-          FormatId = formats.First(e => e.Name == change.Format).Id,
+          FormatId = format?.Id,
           CardScryfallId = cardModels.First(e => e.Name == card).ScryfallId,
           Date = model.Date,
           Type = change.Type
@@ -52,7 +57,7 @@ public class AnnouncementService : IAnnouncementService
         announcement.Changes.Add(evt);
       }
     }
-    
+
     await _context.Announcements.AddAsync(announcement, cancellationToken);
     await _context.SaveChangesAsync(cancellationToken);
   }

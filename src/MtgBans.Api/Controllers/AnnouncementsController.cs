@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MtgBans.Exceptions;
 using MtgBans.Models.Announcements;
 using MtgBans.Services.Services;
 
@@ -23,7 +24,14 @@ public class AnnouncementsController : ControllerBase
   [ProducesResponseType(StatusCodes.Status201Created)]
   public async Task<IActionResult> Publish(PublishAnnouncementModel model, CancellationToken cancellationToken)
   {
-    await _announcementService.Publish(model, cancellationToken);
-    return Created();
-  }  
+    try
+    {
+      await _announcementService.Publish(model, cancellationToken);
+      return Created();
+    }
+    catch (InvalidEntryOperation ex)
+    {
+      return UnprocessableEntity(new { ex.Message });
+    }
+  }
 }

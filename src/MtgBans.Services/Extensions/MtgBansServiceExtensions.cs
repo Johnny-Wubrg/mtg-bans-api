@@ -15,6 +15,7 @@ public static class MtgBansServiceExtensions
     
     services.AddTransient<IAnnouncementService, AnnouncementService>();
     services.AddTransient<ICardService, CardService>();
+    services.AddTransient<IExpansionService, ExpansionService>();
     
     services.AddDbContext<MtgBansContext>(options =>
       options.UseNpgsql(

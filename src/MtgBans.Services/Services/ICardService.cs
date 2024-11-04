@@ -3,6 +3,7 @@ using MtgBans.Data;
 using MtgBans.Data.Entities;
 using MtgBans.Models.Cards;
 using MtgBans.Scryfall.Clients;
+using MtgBans.Scryfall.Models;
 using Refit;
 
 namespace MtgBans.Services.Services;
@@ -11,6 +12,8 @@ public interface ICardService
 {
   Task<IEnumerable<CardModel>> ResolveCards(IEnumerable<string> cardNames,
     CancellationToken cancellationToken = default);
+
+  Task RefreshExpansions(CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService
@@ -29,7 +32,8 @@ public class CardService : ICardService
     CancellationToken cancellationToken = default)
   {
     var existingCards = await _context.Cards.Where(c => cardNames.Contains(c.Name)).ToListAsync(cancellationToken);
-    var tasks = cardNames.Select(e => ResolveCard(e, existingCards, cancellationToken));
+    var existingSets = await _context.Expansions.Select(e => e.ScryfallId).ToListAsync(cancellationToken);
+    var tasks = cardNames.Select(e => ResolveCard(e, existingCards, existingSets, cancellationToken));
 
     var cards = await Task.WhenAll(tasks);
 
@@ -38,7 +42,29 @@ public class CardService : ICardService
     return cards.Where(c => c is not null).ToList()!;
   }
 
+  public async Task RefreshExpansions(CancellationToken cancellationToken = default)
+  {
+    var existingCards = await _context.Cards.Include(e => e.Printings).AsNoTracking().ToListAsync(cancellationToken);
+    var existingSets = await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
+    var refreshTasks = existingCards.Select(c => RefreshCardPrintings(c, existingSets, cancellationToken));
+
+    var taskResults = await Task.WhenAll(refreshTasks);
+    var printsToAdd = taskResults.SelectMany(e => e);
+
+    await _context.AddRangeAsync(printsToAdd, cancellationToken);
+    await _context.SaveChangesAsync(cancellationToken);
+  }
+
+  private async Task<Printing[]> RefreshCardPrintings(Card card, List<Guid> existingSets,
+    CancellationToken cancellationToken = default)
+  {
+    var scryfallCards = await _scryfallClient.GetCardByOracleId(card.ScryfallId, cancellationToken);
+
+    return GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
+  }
+
   private async Task<CardModel?> ResolveCard(string cardName, List<Card> existingCards,
+    List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {
     var existing = existingCards.FirstOrDefault(c => c.Name == cardName);
@@ -51,13 +77,15 @@ public class CardService : ICardService
 
       var firstPrinting = scryfallCards.Data.First();
       var lastPrinting = scryfallCards.Data.Last();
+      var oracleId = firstPrinting.OracleId;
 
       var newCard = new Card
       {
-        ScryfallId = firstPrinting.OracleId,
+        ScryfallId = oracleId,
         Name = firstPrinting.Name,
         ScryfallUri = lastPrinting.ScryfallUri,
         ScryfallImageUri = lastPrinting.ImageUris.Png,
+        Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
         LegalityEvents = new List<CardLegalityEvent>
         {
           new()
@@ -76,6 +104,21 @@ public class CardService : ICardService
     {
       return null;
     }
+  }
+
+  private static Printing[] GetUntrackedPrintings(Guid cardScryfallId, ScryfallDataset<ScryfallCard> scryfallCards,
+    List<Guid> existingSets,
+    ICollection<Printing> trackedPrintings = null)
+  {
+    return scryfallCards.Data.Where(e =>
+        existingSets.Contains(e.SetId) &&
+        (trackedPrintings is null || trackedPrintings.All(p => p.ScryfallId != e.Id)))
+      .Select(e => new Printing
+      {
+        ScryfallId = e.Id,
+        CardScryfallId = cardScryfallId,
+        ExpansionScryfallId = e.SetId
+      }).ToArray();
   }
 
   private static CardModel? EntityToModel(Card existing)

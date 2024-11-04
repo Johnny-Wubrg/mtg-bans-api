@@ -17,4 +17,6 @@ public class Card
   public Uri ScryfallUri { get; set; }
 
   public ICollection<CardLegalityEvent> LegalityEvents { get; set; }
+  
+  public ICollection<Printing> Printings { get; set; }
 }

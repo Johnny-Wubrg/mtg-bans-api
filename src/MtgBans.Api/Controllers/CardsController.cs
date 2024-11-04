@@ -23,4 +23,12 @@ public class CardsController : ControllerBase
   /// <returns></returns>
   [HttpPost]
   public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) => _cardService.ResolveCards(cardNames, cancellationToken);
+  
+  /// <summary>
+  /// Refresh printings for every card
+  /// </summary>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpPost("expansions")]
+  public Task RefreshExpansions(CancellationToken cancellationToken) => _cardService.RefreshExpansions(cancellationToken);
 }

@@ -16,6 +16,11 @@ public class ExpansionsController
   }
 
 
+  
+  /// <summary>
+  /// Refresh sets
+  /// </summary>
+  /// <returns></returns>
   [HttpPost]
   public Task<IEnumerable<Expansion>> RefreshSets() => _expansionService.RefreshExpansions();
 }

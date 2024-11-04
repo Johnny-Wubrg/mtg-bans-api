@@ -23,4 +23,6 @@ public class Expansion
   public DateOnly DateReleased { get; set; }
   
   public ICollection<ExpansionLegality> Legalities { get; set; }
+  
+  public ICollection<Printing> Cards { get; set; }
 }

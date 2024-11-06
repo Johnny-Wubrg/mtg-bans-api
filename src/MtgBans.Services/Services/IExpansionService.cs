@@ -8,7 +8,7 @@ namespace MtgBans.Services.Services;
 
 public interface IExpansionService
 {
-  public Task<IEnumerable<ExpansionModel>> RefreshExpansions();
+  public Task<IEnumerable<ExpansionModel>> RefreshExpansions(CancellationToken cancellationToken);
 }
 
 public class ExpansionService : IExpansionService
@@ -22,12 +22,12 @@ public class ExpansionService : IExpansionService
     _context = context;
   }
 
-  public async Task<IEnumerable<ExpansionModel>> RefreshExpansions()
+  public async Task<IEnumerable<ExpansionModel>> RefreshExpansions(CancellationToken cancellationToken)
   {
-    var scryfallSets = await _scryfallClient.GetSets();
-    var formats = await _context.Formats.ToListAsync();
+    var scryfallSets = await _scryfallClient.GetSets(cancellationToken);
+    var formats = await _context.Formats.ToListAsync(cancellationToken: cancellationToken);
 
-    var existingExpansions = await _context.Expansions.Select(e => e.ScryfallId).ToListAsync();
+    var existingExpansions = await _context.Expansions.Select(e => e.ScryfallId).ToListAsync(cancellationToken: cancellationToken);
 
     string[] ignoredTypes = ["funny", "memorabilia", "token", "minigame", "vanguard"];
     string[] standardLegalTypes = ["core", "expansion"];
@@ -57,8 +57,8 @@ public class ExpansionService : IExpansionService
       ];
     }
 
-    await _context.Expansions.AddRangeAsync(expansions);
-    await _context.SaveChangesAsync();
+    await _context.Expansions.AddRangeAsync(expansions, cancellationToken);
+    await _context.SaveChangesAsync(cancellationToken);
 
     return expansions.Select(EntityToModel);
   }

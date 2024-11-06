@@ -22,5 +22,5 @@ public class ExpansionsController
   /// </summary>
   /// <returns></returns>
   [HttpPost]
-  public Task<IEnumerable<ExpansionModel>> RefreshSets() => _expansionService.RefreshExpansions();
+  public Task<IEnumerable<ExpansionModel>> RefreshSets(CancellationToken cancellationToken) => _expansionService.RefreshExpansions(cancellationToken);
 }

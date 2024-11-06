@@ -29,6 +29,6 @@ public class CardsController : ControllerBase
   /// </summary>
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
-  [HttpPost("expansions")]
+  [HttpPost("refresh-sets")]
   public Task RefreshExpansions(CancellationToken cancellationToken) => _cardService.RefreshExpansions(cancellationToken);
 }

@@ -7,8 +7,8 @@ namespace MtgBans.Services.Services;
 
 public interface IFormatService
 {
-  Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken);
-  Task<FormatModel> GetById(int id, CancellationToken cancellationToken);
+  Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken = default);
+  Task<FormatModel> GetById(int id, CancellationToken cancellationToken = default);
 }
 
 public class FormatService : IFormatService
@@ -20,13 +20,13 @@ public class FormatService : IFormatService
     _context = context;
   }
 
-  public async Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken)
+  public async Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken = default)
   {
     var formats = await _context.Formats.Include(f => f.Events).ToListAsync(cancellationToken);
     return formats.Select(EntityToModel);
   }
 
-  public async Task<FormatModel> GetById(int id, CancellationToken cancellationToken)
+  public async Task<FormatModel> GetById(int id, CancellationToken cancellationToken = default)
   {
     var format = await _context.Formats.Include(f => f.Events).FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     return EntityToModel(format);

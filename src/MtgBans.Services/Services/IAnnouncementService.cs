@@ -9,7 +9,7 @@ namespace MtgBans.Services.Services;
 
 public interface IAnnouncementService
 {
-  Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken);
+  Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default);
 }
 
 public class AnnouncementService : IAnnouncementService
@@ -23,7 +23,7 @@ public class AnnouncementService : IAnnouncementService
     _context = context;
   }
 
-  public async Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken)
+  public async Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default)
   {
     var announcement = new Announcement
     {

@@ -45,7 +45,7 @@ public class ExpansionService : IExpansionService
 
     foreach (var standard in expansions.Where(e => standardLegalTypes.Contains(e.Type)))
     {
-      standard.Legalities = [new ExpansionLegality { FormatId = 2, StartDate = standard.DateReleased }];
+      standard.Legalities = [new ExpansionLegality { FormatId = 2, DateEntered = standard.DateReleased }];
     }
 
     await _context.Expansions.AddRangeAsync(expansions);

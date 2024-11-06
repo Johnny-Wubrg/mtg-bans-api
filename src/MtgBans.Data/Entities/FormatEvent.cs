@@ -11,7 +11,7 @@ public class FormatEvent
   public string NameUpdate { get; set; }
 
   [Required]
-  public DateOnly Date { get; set; }
+  public DateOnly DateEffective { get; set; }
 
   [Required, MaxLength(200)]
   public string Description { get; set; }

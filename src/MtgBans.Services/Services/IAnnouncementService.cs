@@ -29,7 +29,7 @@ public class AnnouncementService : IAnnouncementService
     {
       Summary = model.Summary,
       Sources = model.Sources,
-      Date = model.Date,
+      DateEffective = model.DateEffective,
       Changes = new List<CardLegalityEvent>()
     };
 
@@ -50,7 +50,7 @@ public class AnnouncementService : IAnnouncementService
         {
           FormatId = format?.Id,
           CardScryfallId = cardModels.First(e => e.Name == card).ScryfallId,
-          Date = model.Date,
+          DateEffective = model.DateEffective,
           Type = change.Type
         };
 

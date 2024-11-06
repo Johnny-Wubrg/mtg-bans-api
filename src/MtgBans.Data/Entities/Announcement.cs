@@ -7,7 +7,7 @@ public class Announcement
   [Key]
   public int Id { get; set; }
 
-  public DateOnly Date { get; set; }
+  public DateOnly DateEffective { get; set; }
 
   [MaxLength(200)]
   public string Summary { get; set; }

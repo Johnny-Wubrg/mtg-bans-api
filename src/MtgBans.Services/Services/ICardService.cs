@@ -91,7 +91,7 @@ public class CardService : ICardService
           new()
           {
             Type = CardLegalityEventType.Released,
-            Date = firstPrinting.ReleasedAt
+            DateEffective = firstPrinting.ReleasedAt
           }
         }
       };

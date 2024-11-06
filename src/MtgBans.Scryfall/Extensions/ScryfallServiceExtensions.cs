@@ -10,20 +10,21 @@ public static class ScryfallServiceExtensions
 {
   public static void AddScryfall(this IServiceCollection services, IConfiguration configuration)
   {
-    
-    var jsonSerializerOptions = new JsonSerializerOptions() 
+    var jsonSerializerOptions = new JsonSerializerOptions()
     {
       //set some options such as your preferred naming style...
       PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
       WriteIndented = true
     };
-    var settings = new RefitSettings(new SystemTextJsonContentSerializer(jsonSerializerOptions), null, null); 
 
-    services.AddRefitClient<IScryfallClient>(settings).ConfigureHttpClient(opt =>
-    {
-      opt.BaseAddress = new Uri(configuration.GetSection("Scryfall")["ApiBaseUrl"] ?? string.Empty);
-      
-      opt.DefaultRequestHeaders.UserAgent.ParseAdd("mtg-bans-api");
-    });
+    var settings = new RefitSettings(new SystemTextJsonContentSerializer(jsonSerializerOptions), null, null);
+
+    services
+      .AddRefitClient<IScryfallClient>(settings)
+      .ConfigureHttpClient(opt =>
+      {
+        opt.BaseAddress = new Uri(configuration.GetSection("Scryfall")["ApiBaseUrl"] ?? string.Empty);
+        opt.DefaultRequestHeaders.UserAgent.ParseAdd("MTG Bans API");
+      });
   }
 }

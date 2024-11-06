@@ -15,7 +15,7 @@ public class ExpansionLegality
   public Format Format { get; set; }
   
   [Required]
-  public DateOnly StartDate { get; set; }
+  public DateOnly DateEntered { get; set; }
 
-  public DateOnly? EndDate { get; set; }
+  public DateOnly? DateExited { get; set; }
 }

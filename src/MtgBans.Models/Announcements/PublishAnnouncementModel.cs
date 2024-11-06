@@ -8,7 +8,7 @@ public class PublishAnnouncementModel
   /// Effective Date of the change set
   /// </summary>
   /// <example>1997-03-14</example>
-  public DateOnly Date { get; set; }
+  public DateOnly DateEffective { get; set; }
 
   /// <summary>
   /// Summary or title of the announcement

@@ -24,7 +24,7 @@ public class CardLegalityEvent
   public Card Card { get; set; }
 
   [Required]
-  public DateOnly Date { get; set; }
+  public DateOnly DateEffective { get; set; }
   
   public int? FormatId { get; set; }
   

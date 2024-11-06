@@ -3,3 +3,5 @@ obj/
 .idea/
 .vscode/
 appsettings.*.json
+
+*.DotSettings.user

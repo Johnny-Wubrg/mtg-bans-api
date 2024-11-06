@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
+using MtgBans.Models.Expansions;
 using MtgBans.Scryfall.Clients;
 
 namespace MtgBans.Services.Services;
 
 public interface IExpansionService
 {
-  public Task<IEnumerable<Expansion>> RefreshExpansions();
+  public Task<IEnumerable<ExpansionModel>> RefreshExpansions();
 }
 
 public class ExpansionService : IExpansionService
@@ -21,13 +22,14 @@ public class ExpansionService : IExpansionService
     _context = context;
   }
 
-  public async Task<IEnumerable<Expansion>> RefreshExpansions()
+  public async Task<IEnumerable<ExpansionModel>> RefreshExpansions()
   {
     var scryfallSets = await _scryfallClient.GetSets();
+    var formats = await _context.Formats.ToListAsync();
 
     var existingExpansions = await _context.Expansions.Select(e => e.ScryfallId).ToListAsync();
 
-    string[] ignoredTypes = ["funny", "memorabilia", "token"];
+    string[] ignoredTypes = ["funny", "memorabilia", "token", "minigame", "vanguard"];
     string[] standardLegalTypes = ["core", "expansion"];
 
     var expansions = scryfallSets.Data
@@ -45,12 +47,32 @@ public class ExpansionService : IExpansionService
 
     foreach (var standard in expansions.Where(e => standardLegalTypes.Contains(e.Type)))
     {
-      standard.Legalities = [new ExpansionLegality { FormatId = 2, DateEntered = standard.DateReleased }];
+      standard.Legalities =
+      [
+        new ExpansionLegality
+        {
+          Format = formats.FirstOrDefault(e => e.Name == "Standard"),
+          DateEntered = standard.DateReleased
+        }
+      ];
     }
 
     await _context.Expansions.AddRangeAsync(expansions);
     await _context.SaveChangesAsync();
 
-    return expansions;
+    return expansions.Select(EntityToModel);
+  }
+
+  private static ExpansionModel EntityToModel(Expansion expansion)
+  {
+    return new ExpansionModel
+    {
+      ScryfallId = expansion.ScryfallId,
+      Name = expansion.Name,
+      Code = expansion.Code,
+      Type = expansion.Type,
+      DateReleased = expansion.DateReleased,
+      ScryfallUri = expansion.ScryfallUri
+    };
   }
 }

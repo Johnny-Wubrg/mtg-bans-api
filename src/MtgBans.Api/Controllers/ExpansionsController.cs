@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MtgBans.Data.Entities;
+using MtgBans.Models.Expansions;
 using MtgBans.Services.Services;
 
 namespace MtgBans.Api.Controllers;
@@ -22,5 +22,5 @@ public class ExpansionsController
   /// </summary>
   /// <returns></returns>
   [HttpPost]
-  public Task<IEnumerable<Expansion>> RefreshSets() => _expansionService.RefreshExpansions();
+  public Task<IEnumerable<ExpansionModel>> RefreshSets() => _expansionService.RefreshExpansions();
 }

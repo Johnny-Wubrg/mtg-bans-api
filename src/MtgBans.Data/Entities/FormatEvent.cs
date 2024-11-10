@@ -15,4 +15,6 @@ public class FormatEvent
 
   [Required, MaxLength(200)]
   public string Description { get; set; }
+  
+  public Announcement Announcement { get; set; }
 }

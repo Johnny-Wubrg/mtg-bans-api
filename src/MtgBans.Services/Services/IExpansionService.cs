@@ -89,7 +89,7 @@ public class ExpansionService : IExpansionService
       .Where(e => e.Legalities
         .Any(l =>
           l.FormatId == formatId &&
-          l.DateEntered < date && (l.DateExited == null || l.DateExited > date)))
+          l.DateEntered <= date && (l.DateExited == null || l.DateExited > date)))
       .OrderBy(e => e.DateReleased)
       .ToListAsync(cancellationToken: cancellationToken);
     return expansions.Select(EntityToModel);

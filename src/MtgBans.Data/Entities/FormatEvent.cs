@@ -7,7 +7,7 @@ public class FormatEvent
   [Key]
   public int Id { get; set; }
   
-  [MaxLength(20)]
+  [MaxLength(32)]
   public string NameUpdate { get; set; }
 
   [Required]

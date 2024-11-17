@@ -16,9 +16,22 @@ public class ExpansionsController
     _expansionService = expansionService;
   }
 
+  /// <summary>
+  /// Get all expansions with optional filter for format legality on a date
+  /// </summary>
+  /// <param name="format">Id of the format</param>
+  /// <param name="date">Optional date to check (defaults to now)</param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
   [HttpGet]
-  public Task<IEnumerable<ExpansionModel>> GetAll(CancellationToken cancellationToken) =>
-    _expansionService.GetAll(cancellationToken);
+  public Task<IEnumerable<ExpansionModel>> GetAll(int? format = null, DateOnly? date = null,
+    CancellationToken cancellationToken = default)
+  {
+    if (date.HasValue && !format.HasValue) throw new BadHttpRequestException("Date only supported for format filter.");
+    return format.HasValue
+      ? _expansionService.GetLegal(format.Value, date ?? DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken)
+      : _expansionService.GetAll(cancellationToken);
+  }
 
   /// <summary>
   /// Refresh sets

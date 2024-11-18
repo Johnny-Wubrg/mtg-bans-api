@@ -44,8 +44,14 @@ public class CardsController : ControllerBase
   /// <returns></returns>
   [HttpGet("bans")]
   public Task<IEnumerable<FormatBansModel>> GetBans(DateOnly? date = null,
-    CancellationToken cancellationToken = default)
-  {
-    return _cardService.GetBans(date.GetValueOrNow(), cancellationToken);
-  }
+    CancellationToken cancellationToken = default) => _cardService.GetBans(date.GetValueOrNow(), cancellationToken);
+
+  /// <summary>
+  /// Get B&R timelines for all cards
+  /// </summary>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet("timelines")]
+  public Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken = default) =>
+    _cardService.GetTimelines(cancellationToken);
 }

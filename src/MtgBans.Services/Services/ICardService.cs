@@ -16,6 +16,7 @@ public interface ICardService
 
   Task RefreshExpansions(CancellationToken cancellationToken = default);
   Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken);
+  Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken);
 }
 
 public class CardService : ICardService
@@ -73,16 +74,64 @@ public class CardService : ICardService
     });
   }
 
-  private IEnumerable<CardModel> GetLimitedCardsByFormat(int formatId, CardLegalityEventType type, List<Card> cards,
+  public async Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken)
+  {
+    var cards = await _context.Cards.Include(e => e.LegalityEvents).ThenInclude(l => l.Format).AsNoTracking()
+      .ToListAsync(cancellationToken);
+
+    CardLegalityEventType[] bannedOrRestricted = [CardLegalityEventType.Banned, CardLegalityEventType.Restricted];
+    return cards.Select(c => new CardTimelineModel
+    {
+      ScryfallId = c.ScryfallId,
+      Name = c.Name,
+      ScryfallUri = c.ScryfallUri,
+      ScryfallImageUri = c.ScryfallImageUri,
+      Timeline = c.LegalityEvents.Where(e => e.FormatId.HasValue).GroupBy(e => e.FormatId).Select(g =>
+        new CardTimelineFormatModel
+        {
+          Format = g.First().Format.Name,
+          Changes = g
+            .OrderBy(e => e.DateEffective)
+            .Select((start, index) =>
+            {
+              var end = g.Skip(index + 1).FirstOrDefault();
+
+              return new CardTimeframeModel
+              {
+                Start = new CardTimeframeEventModel
+                {
+                  Type = start.Type,
+                  Date = start.DateEffective,
+                },
+                End = end is null
+                  ? null
+                  : new CardTimeframeEventModel
+                  {
+                    Type = end.Type,
+                    Date = end.DateEffective
+                  }
+              };
+            })
+            .Where(e => bannedOrRestricted.Contains(e.Start.Type))
+        })
+    });
+  }
+
+  private static IEnumerable<CardModel> GetLimitedCardsByFormat(
+    int formatId,
+    CardLegalityEventType type,
+    List<Card> cards,
     DateOnly date)
   {
-    var filtered = cards.Where(c =>
-      c.LegalityEvents
-        .Where(l => l.FormatId == formatId && l.DateEffective <= date)
-        .OrderBy(l => l.DateEffective)
-        .LastOrDefault()?.Type == type);
+    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.Name).Select(EntityToModel);
+  }
 
-    return filtered.Select(EntityToModel);
+  private static bool CardHasLegality(Card c, CardLegalityEventType type, int formatId, DateOnly date)
+  {
+    return c.LegalityEvents
+      .Where(l => l.FormatId == formatId && l.DateEffective <= date)
+      .OrderBy(l => l.DateEffective)
+      .LastOrDefault()?.Type == type;
   }
 
   private async Task<Printing[]> RefreshCardPrintings(Card card, List<Guid> existingSets,
@@ -93,7 +142,7 @@ public class CardService : ICardService
     return GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
   }
 
-  private async Task<CardModel?> ResolveCard(string cardName, List<Card> existingCards,
+  private async Task<CardModel> ResolveCard(string cardName, List<Card> existingCards,
     List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {

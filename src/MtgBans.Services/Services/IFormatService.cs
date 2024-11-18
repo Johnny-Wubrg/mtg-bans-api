@@ -32,7 +32,7 @@ public class FormatService : IFormatService
     return EntityToModel(format);
   }
 
-  private static FormatModel EntityToModel(Format format)
+  public static FormatModel EntityToModel(Format format)
   {
     return new FormatModel
     {

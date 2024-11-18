@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MtgBans.Data.Entities;
 using MtgBans.Models.Expansions;
+using MtgBans.Services.Extensions;
 using MtgBans.Services.Services;
 
 namespace MtgBans.Api.Controllers;
@@ -29,7 +30,7 @@ public class ExpansionsController
   {
     if (date.HasValue && !format.HasValue) throw new BadHttpRequestException("Date only supported for format filter.");
     return format.HasValue
-      ? _expansionService.GetLegal(format.Value, date ?? DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken)
+      ? _expansionService.GetLegal(format.Value, date.GetValueOrNow(), cancellationToken)
       : _expansionService.GetAll(cancellationToken);
   }
 

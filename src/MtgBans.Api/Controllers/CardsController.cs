@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MtgBans.Models.Cards;
+using MtgBans.Models.Formats;
+using MtgBans.Services.Extensions;
 using MtgBans.Services.Services;
 
 namespace MtgBans.Api.Controllers;
@@ -9,7 +11,7 @@ namespace MtgBans.Api.Controllers;
 public class CardsController : ControllerBase
 {
   private readonly ICardService _cardService;
-  
+
   public CardsController(ICardService cardService)
   {
     _cardService = cardService;
@@ -22,13 +24,28 @@ public class CardsController : ControllerBase
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpPost]
-  public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) => _cardService.ResolveCards(cardNames, cancellationToken);
-  
+  public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) =>
+    _cardService.ResolveCards(cardNames, cancellationToken);
+
   /// <summary>
   /// Refresh printings for every card
   /// </summary>
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpPost("refresh-sets")]
-  public Task RefreshExpansions(CancellationToken cancellationToken) => _cardService.RefreshExpansions(cancellationToken);
+  public Task RefreshExpansions(CancellationToken cancellationToken) =>
+    _cardService.RefreshExpansions(cancellationToken);
+
+  /// <summary>
+  /// Get banned and restricted cards by date
+  /// </summary>
+  /// <param name="date"></param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet("bans")]
+  public Task<IEnumerable<FormatBansModel>> GetBans(DateOnly? date = null,
+    CancellationToken cancellationToken = default)
+  {
+    return _cardService.GetBans(date.GetValueOrNow(), cancellationToken);
+  }
 }

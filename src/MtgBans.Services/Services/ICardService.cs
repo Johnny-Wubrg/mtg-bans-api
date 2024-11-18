@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
 using MtgBans.Models.Cards;
+using MtgBans.Models.Formats;
 using MtgBans.Scryfall.Clients;
 using MtgBans.Scryfall.Models;
 using Refit;
@@ -14,6 +15,7 @@ public interface ICardService
     CancellationToken cancellationToken = default);
 
   Task RefreshExpansions(CancellationToken cancellationToken = default);
+  Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken);
 }
 
 public class CardService : ICardService
@@ -45,7 +47,8 @@ public class CardService : ICardService
   public async Task RefreshExpansions(CancellationToken cancellationToken = default)
   {
     var existingCards = await _context.Cards.Include(e => e.Printings).AsNoTracking().ToListAsync(cancellationToken);
-    var existingSets = await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
+    var existingSets =
+      await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
     var refreshTasks = existingCards.Select(c => RefreshCardPrintings(c, existingSets, cancellationToken));
 
     var taskResults = await Task.WhenAll(refreshTasks);
@@ -53,6 +56,33 @@ public class CardService : ICardService
 
     await _context.AddRangeAsync(printsToAdd, cancellationToken);
     await _context.SaveChangesAsync(cancellationToken);
+  }
+
+  public async Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken)
+  {
+    var cards = await _context.Cards.Include(e => e.LegalityEvents).AsNoTracking().ToListAsync(cancellationToken);
+    var formats = await _context.Formats.AsNoTracking().ToListAsync(cancellationToken);
+
+    return formats.Select(format => new FormatBansModel
+    {
+      Format = format.Name,
+      Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
+        date),
+      Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
+        date)
+    });
+  }
+
+  private IEnumerable<CardModel> GetLimitedCardsByFormat(int formatId, CardLegalityEventType type, List<Card> cards,
+    DateOnly date)
+  {
+    var filtered = cards.Where(c =>
+      c.LegalityEvents
+        .Where(l => l.FormatId == formatId && l.DateEffective <= date)
+        .OrderBy(l => l.DateEffective)
+        .LastOrDefault()?.Type == type);
+
+    return filtered.Select(EntityToModel);
   }
 
   private async Task<Printing[]> RefreshCardPrintings(Card card, List<Guid> existingSets,

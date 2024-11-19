@@ -200,7 +200,7 @@ public class CardService : ICardService
       }).ToArray();
   }
 
-  private static CardModel EntityToModel(Card existing)
+  public static CardModel EntityToModel(Card existing)
   {
     return new CardModel
     {

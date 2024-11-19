@@ -10,6 +10,7 @@ namespace MtgBans.Services.Services;
 public interface IAnnouncementService
 {
   Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default);
+  Task<IEnumerable<AnnouncementModel>> GetAll(CancellationToken cancellationToken = default);
 }
 
 public class AnnouncementService : IAnnouncementService
@@ -21,6 +22,17 @@ public class AnnouncementService : IAnnouncementService
   {
     _cardService = cardService;
     _context = context;
+  }
+
+  public async Task<IEnumerable<AnnouncementModel>> GetAll(CancellationToken cancellationToken = default)
+  {
+    var announcements = await _context.Announcements.AsNoTracking()
+      .Include(a => a.Changes).ThenInclude(e => e.Card)
+      .Include(a => a.Changes).ThenInclude(e => e.Format)
+      .OrderBy(a => a.DateEffective)
+      .ToListAsync(cancellationToken);
+
+    return announcements.Select(EntityToModel);
   }
 
   public async Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default)
@@ -43,7 +55,7 @@ public class AnnouncementService : IAnnouncementService
       var format = formats.FirstOrDefault(e => e.Name == change.Format);
 
       if (format is null) throw new InvalidEntryOperation(nameof(change.Format), change.Format);
-      
+
       foreach (var card in change.Cards)
       {
         var evt = new CardLegalityEvent
@@ -60,5 +72,25 @@ public class AnnouncementService : IAnnouncementService
 
     await _context.Announcements.AddAsync(announcement, cancellationToken);
     await _context.SaveChangesAsync(cancellationToken);
+  }
+
+  public static AnnouncementModel EntityToModel(Announcement announcement)
+  {
+    return new AnnouncementModel
+    {
+      Id = announcement.Id,
+      DateEffective = announcement.DateEffective,
+      Summary = announcement.Summary,
+      Sources = announcement.Sources,
+      Changesets = announcement.Changes.GroupBy(e => e.FormatId).Select(f => new AnnouncementFormatModel
+      {
+        Format = f.First().Format.Name,
+        Changes = f.GroupBy(g => g.Type).Select(t => new AnnouncementChangeModel
+        {
+          Type = t.Key,
+          Cards = t.Select(c => CardService.EntityToModel(c.Card)).ToList()
+        })
+      })
+    };
   }
 }

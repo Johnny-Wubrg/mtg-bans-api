@@ -17,6 +17,15 @@ public class AnnouncementsController : ControllerBase
   }
 
   /// <summary>
+  /// Get all announcements
+  /// </summary>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet]
+  public Task<IEnumerable<AnnouncementModel>> Get(CancellationToken cancellationToken) =>
+    _announcementService.GetAll(cancellationToken);
+
+  /// <summary>
   /// Publish a new announcement
   /// </summary>
   /// <param name="model"></param>

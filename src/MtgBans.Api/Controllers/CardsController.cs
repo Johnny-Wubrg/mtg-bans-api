@@ -47,7 +47,7 @@ public class CardsController : ControllerBase
     CancellationToken cancellationToken = default) => _cardService.GetBans(date.GetValueOrNow(), cancellationToken);
 
   /// <summary>
-  /// Get B&R timelines for all cards
+  /// Get B&amp;R timelines for all cards
   /// </summary>
   /// <param name="cancellationToken"></param>
   /// <returns></returns>

@@ -1,9 +1,15 @@
 using MtgBans.Data.Entities;
+using MtgBans.Models.Cards;
 
 namespace MtgBans.Models.Announcements;
 
-public class PublishAnnouncementModel
+public class AnnouncementModel
 {
+  /// <summary>
+  /// System ID of the announcement 
+  /// </summary>
+  public int Id { get; set; }
+
   /// <summary>
   /// Effective Date of the change sets
   /// </summary>
@@ -15,17 +21,34 @@ public class PublishAnnouncementModel
   /// </summary>
   /// <example>March 14, 1997, Banned and Restricted Announcement</example>
   public string Summary { get; set; }
-  
+
   /// <summary>
   /// Uri to announcement article, if applicable
   /// </summary>
   /// <example>["https://www.example.com/path-to-announcement"]</example>
   public Uri[] Sources { get; set; }
-  
-  public ICollection<PublishAnnouncementChangeModel> Changes { get; set; }
+
+  /// <summary>
+  /// The sets of changes in the announcement
+  /// </summary>
+  public IEnumerable<AnnouncementFormatModel> Changesets { get; set; }
 }
 
-public class PublishAnnouncementChangeModel
+public class AnnouncementFormatModel
+{
+  /// <summary>
+  /// The name of the format affected by the change set
+  /// </summary>
+  /// <example>Standard</example>
+  public string Format { get; set; }
+  
+  /// <summary>
+  /// The changes that are part of the set
+  /// </summary>
+  public IEnumerable<AnnouncementChangeModel> Changes { get; set; }
+}
+
+public class AnnouncementChangeModel
 {
   /// <summary>
   /// Type of the legality change
@@ -34,14 +57,7 @@ public class PublishAnnouncementChangeModel
   public CardLegalityEventType Type { get; set; }
   
   /// <summary>
-  /// The name of the format affected
+  /// List of card affected
   /// </summary>
-  /// <example>Standard</example>
-  public string Format { get; set; }
-  
-  /// <summary>
-  /// List of card names affected
-  /// </summary>
-  /// <example>["Llanowar Elves", "Murder"]</example>
-  public string[] Cards { get; set; }
+  public IEnumerable<CardModel> Cards { get; set; }
 }

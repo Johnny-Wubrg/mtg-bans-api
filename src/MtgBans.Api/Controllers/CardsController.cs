@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MtgBans.Api.Filters;
 using MtgBans.Models.Cards;
 using MtgBans.Models.Formats;
 using MtgBans.Services.Extensions;
@@ -18,25 +19,6 @@ public class CardsController : ControllerBase
   }
 
   /// <summary>
-  /// Get card data from database or Scryfall
-  /// </summary>
-  /// <param name="cardNames"></param>
-  /// <param name="cancellationToken"></param>
-  /// <returns></returns>
-  [HttpPost]
-  public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) =>
-    _cardService.ResolveCards(cardNames, cancellationToken);
-
-  /// <summary>
-  /// Refresh printings for every card
-  /// </summary>
-  /// <param name="cancellationToken"></param>
-  /// <returns></returns>
-  [HttpPost("refresh-sets")]
-  public Task RefreshExpansions(CancellationToken cancellationToken) =>
-    _cardService.RefreshExpansions(cancellationToken);
-
-  /// <summary>
   /// Get banned and restricted cards by date
   /// </summary>
   /// <param name="date"></param>
@@ -54,4 +36,26 @@ public class CardsController : ControllerBase
   [HttpGet("timelines")]
   public Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken = default) =>
     _cardService.GetTimelines(cancellationToken);
+
+  /// <summary>
+  /// Get card data from database or Scryfall
+  /// </summary>
+  /// <param name="cardNames"></param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpPost]
+  [ApiKeyAuthentication]
+  [Obsolete("Was created for testing purposes only.")]
+  public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) =>
+    _cardService.ResolveCards(cardNames, cancellationToken);
+
+  /// <summary>
+  /// Refresh printings for every card
+  /// </summary>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpPost("refresh-sets")]
+  [ApiKeyAuthentication]
+  public Task RefreshExpansions(CancellationToken cancellationToken) =>
+    _cardService.RefreshExpansions(cancellationToken);
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MtgBans.Api.Filters;
 using MtgBans.Data.Entities;
 using MtgBans.Models.Expansions;
 using MtgBans.Services.Extensions;
@@ -25,6 +26,7 @@ public class ExpansionsController
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpGet]
+  [Obsolete("Was created for testing purposes only.")]
   public Task<IEnumerable<ExpansionModel>> GetAll(int? format = null, DateOnly? date = null,
     CancellationToken cancellationToken = default)
   {
@@ -39,6 +41,7 @@ public class ExpansionsController
   /// </summary>
   /// <returns></returns>
   [HttpPost]
+  [ApiKeyAuthentication]
   public Task<IEnumerable<ExpansionModel>> RefreshSets(CancellationToken cancellationToken) =>
     _expansionService.RefreshExpansions(cancellationToken);
 }

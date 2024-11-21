@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MtgBans.Api.Filters;
 using MtgBans.Exceptions;
 using MtgBans.Models.Announcements;
 using MtgBans.Services.Services;
@@ -30,7 +31,8 @@ public class AnnouncementsController : ControllerBase
   /// </summary>
   /// <param name="model"></param>
   [HttpPost]
-  [ProducesResponseType(StatusCodes.Status201Created)]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
+  [ApiKeyAuthentication]
   public async Task<IActionResult> Publish(PublishAnnouncementModel model, CancellationToken cancellationToken)
   {
     try

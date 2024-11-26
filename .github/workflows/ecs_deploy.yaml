@@ -50,7 +50,7 @@ jobs:
       - name: Update ECS Task definition
         id: task-def
         uses: pooriaghaedi/amazon-ecs-deploy-task-definition@main
-        with:
+        env:
           REGION: ${{ env.AWS_REGION }}
           ECS_CLUSTER: 'mtg-bans-cluster'
           ECS_SERVICE: 'mtg-bans'

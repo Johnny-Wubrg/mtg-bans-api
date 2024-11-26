@@ -51,7 +51,7 @@ jobs:
         id: task-def
         uses: pooriaghaedi/amazon-ecs-deploy-task-definition@main
         with:
-          REGION: "us-east-1"
+          REGION: ${{ env.AWS_REGION }}
           ECS_CLUSTER: 'mtg-bans-cluster'
           ECS_SERVICE: 'mtg-bans'
           ECS_TASK_DEFINITION: 'mtg-bans'

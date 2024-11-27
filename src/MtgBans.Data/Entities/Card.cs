@@ -19,4 +19,6 @@ public class Card
   public ICollection<CardLegalityEvent> LegalityEvents { get; set; }
   
   public ICollection<Printing> Printings { get; set; }
+  
+  public ICollection<CardAlias> Aliases { get; set; }
 }

@@ -31,10 +31,12 @@ public class CardService : ICardService
   }
 
   public async Task<IEnumerable<CardModel>> ResolveCards(
-    IEnumerable<string> cardNames,
+    IEnumerable<string> cardNamesEnumerable,
     CancellationToken cancellationToken = default)
   {
-    var existingCards = await _context.Cards.Where(c => cardNames.Contains(c.Name)).ToListAsync(cancellationToken);
+    var cardNames = cardNamesEnumerable.ToArray();
+
+    var existingCards = await _context.Cards.Include(c => c.Aliases).ToListAsync(cancellationToken);
     var existingSets = await _context.Expansions.Select(e => e.ScryfallId).ToListAsync(cancellationToken);
     var tasks = cardNames.Select(e => ResolveCard(e, existingCards, existingSets, cancellationToken));
 
@@ -142,11 +144,13 @@ public class CardService : ICardService
     return GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
   }
 
-  private async Task<CardModel> ResolveCard(string cardName, List<Card> existingCards,
+  private async Task<CardModel> ResolveCard(
+    string cardName,
+    List<Card> existingCards,
     List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {
-    var existing = existingCards.FirstOrDefault(c => c.Name == cardName);
+    var existing = existingCards.FirstOrDefault(c => c.Name == cardName || c.Aliases.Any(a => a.Name == cardName));
 
     if (existing is not null) return EntityToModel(existing);
 
@@ -157,6 +161,18 @@ public class CardService : ICardService
       var firstPrinting = scryfallCards.Data.First();
       var lastPrinting = scryfallCards.Data.Last();
       var oracleId = firstPrinting.OracleId;
+
+      var aliased = existingCards.FirstOrDefault(c => c.ScryfallId == oracleId);
+      if (aliased is not null)
+      {
+        await _context.CardAliases.AddAsync(new CardAlias
+        {
+          CardScryfallId = aliased.ScryfallId,
+          Name = cardName,
+        }, cancellationToken);
+
+        return EntityToModel(aliased);
+      }
 
       var newCard = new Card
       {
@@ -174,6 +190,18 @@ public class CardService : ICardService
           }
         }
       };
+
+      if (firstPrinting.Name != cardName)
+      {
+        newCard.Aliases = new List<CardAlias>
+        {
+          new()
+          {
+            CardScryfallId = oracleId,
+            Name = cardName
+          }
+        };
+      }
 
       await _context.Cards.AddAsync(newCard, cancellationToken);
 

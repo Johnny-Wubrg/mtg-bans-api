@@ -4,6 +4,7 @@ using MtgBans.Data;
 using MtgBans.Data.Entities;
 using MtgBans.Models.Expansions;
 using MtgBans.Scryfall.Clients;
+using MtgBans.Scryfall.Models;
 
 namespace MtgBans.Services.Services;
 
@@ -38,7 +39,6 @@ public class ExpansionService : IExpansionService
       .ToListAsync(cancellationToken: cancellationToken);
 
     string[] ignoredTypes = ["funny", "memorabilia", "token", "minigame", "vanguard"];
-    string[] standardLegalTypes = ["core", "expansion"];
 
     var expansions = scryfallSets.Data
       .Where(e => !existingExpansions.Contains(e.Id) && !e.Digital && !ignoredTypes.Contains(e.SetType))
@@ -50,25 +50,49 @@ public class ExpansionService : IExpansionService
         DateReleased = e.ReleasedAt,
         Type = e.SetType,
         ScryfallUri = e.ScryfallUri,
-        Legalities = []
+        Legalities = GetLegalities(e, formats)
       }).ToList();
-
-    foreach (var standard in expansions.Where(e => standardLegalTypes.Contains(e.Type)))
-    {
-      standard.Legalities =
-      [
-        new ExpansionLegality
-        {
-          Format = formats.FirstOrDefault(e => e.Name == "Standard"),
-          DateEntered = standard.DateReleased
-        }
-      ];
-    }
 
     await _context.Expansions.AddRangeAsync(expansions, cancellationToken);
     await _context.SaveChangesAsync(cancellationToken);
 
     return expansions.Select(EntityToModel);
+  }
+
+  private static List<ExpansionLegality> GetLegalities(ScryfallSet expansion, List<Format> formats)
+  {
+    var legalities = new List<ExpansionLegality>
+    {
+      new()
+      {
+        Format = formats.FirstOrDefault(e => e.Name == "Vintage"),
+        DateEntered = expansion.ReleasedAt
+      },
+      new()
+      {
+        Format = formats.FirstOrDefault(e => e.Name == "Legacy"),
+        DateEntered = expansion.ReleasedAt
+      },
+      new()
+      {
+        Format = formats.FirstOrDefault(e => e.Name == "Commander"),
+        DateEntered = expansion.ReleasedAt
+      }
+    };
+
+    string[] standardLegalTypes = ["core", "expansion"];
+    if (standardLegalTypes.Contains(expansion.SetType))
+    {
+      legalities.Add(
+        new ExpansionLegality
+        {
+          Format = formats.FirstOrDefault(e => e.Name == "Standard"),
+          DateEntered = expansion.ReleasedAt
+        }
+      );
+    }
+
+    return legalities;
   }
 
   public async Task<IEnumerable<ExpansionModel>> GetAll(CancellationToken cancellationToken = default)

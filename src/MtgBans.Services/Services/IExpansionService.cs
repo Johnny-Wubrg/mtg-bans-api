@@ -77,6 +77,11 @@ public class ExpansionService : IExpansionService
       {
         Format = formats.FirstOrDefault(e => e.Name == "Commander"),
         DateEntered = expansion.ReleasedAt
+      },
+      new()
+      {
+        Format = formats.FirstOrDefault(e => e.Name == "Pauper"),
+        DateEntered = expansion.ReleasedAt
       }
     };
 
@@ -87,6 +92,13 @@ public class ExpansionService : IExpansionService
         new ExpansionLegality
         {
           Format = formats.FirstOrDefault(e => e.Name == "Standard"),
+          DateEntered = expansion.ReleasedAt
+        }
+      );
+      legalities.Add(
+        new ExpansionLegality
+        {
+          Format = formats.FirstOrDefault(e => e.Name == "Modern"),
           DateEntered = expansion.ReleasedAt
         }
       );

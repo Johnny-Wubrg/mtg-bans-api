@@ -32,6 +32,11 @@ public class AnnouncementService : IAnnouncementService
       .OrderBy(a => a.DateEffective)
       .ToListAsync(cancellationToken);
 
+    foreach (var announcement in announcements)
+    {
+      announcement.Changes = announcement.Changes.OrderBy(c => c.Format.DisplayOrder).ToList();
+    }
+
     return announcements.Select(EntityToModel);
   }
 

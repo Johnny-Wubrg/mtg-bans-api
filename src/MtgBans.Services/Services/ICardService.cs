@@ -66,7 +66,9 @@ public class CardService : ICardService
     var cards = await _context.Cards.Include(e => e.LegalityEvents).AsNoTracking().ToListAsync(cancellationToken);
     var formats = await _context.Formats.AsNoTracking().ToListAsync(cancellationToken);
 
-    return formats.Select(format => new FormatBansModel
+    return formats
+      .OrderBy(f => f.DisplayOrder)
+      .Select(format => new FormatBansModel
     {
       Format = format.Name,
       Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
@@ -88,34 +90,37 @@ public class CardService : ICardService
       Name = c.Name,
       ScryfallUri = c.ScryfallUri,
       ScryfallImageUri = c.ScryfallImageUri,
-      Timeline = c.LegalityEvents.Where(e => e.FormatId.HasValue).GroupBy(e => e.FormatId).Select(g =>
-        new CardTimelineFormatModel
-        {
-          Format = g.First().Format.Name,
-          Changes = g
-            .OrderBy(e => e.DateEffective)
-            .Select((start, index) =>
-            {
-              var end = g.Skip(index + 1).FirstOrDefault();
-
-              return new CardTimeframeModel
+      Timeline = c.LegalityEvents
+        .OrderBy(e => e.Format.DisplayOrder)
+        .Where(e => e.FormatId.HasValue)
+        .GroupBy(e => e.FormatId).Select(g =>
+          new CardTimelineFormatModel
+          {
+            Format = g.First().Format.Name,
+            Changes = g
+              .OrderBy(e => e.DateEffective)
+              .Select((start, index) =>
               {
-                Start = new CardTimeframeEventModel
+                var end = g.Skip(index + 1).FirstOrDefault();
+
+                return new CardTimeframeModel
                 {
-                  Type = start.Type,
-                  Date = start.DateEffective,
-                },
-                End = end is null
-                  ? null
-                  : new CardTimeframeEventModel
+                  Start = new CardTimeframeEventModel
                   {
-                    Type = end.Type,
-                    Date = end.DateEffective
-                  }
-              };
-            })
-            .Where(e => bannedOrRestricted.Contains(e.Start.Type))
-        })
+                    Type = start.Type,
+                    Date = start.DateEffective,
+                  },
+                  End = end is null
+                    ? null
+                    : new CardTimeframeEventModel
+                    {
+                      Type = end.Type,
+                      Date = end.DateEffective
+                    }
+                };
+              })
+              .Where(e => bannedOrRestricted.Contains(e.Start.Type))
+          })
     });
   }
 
@@ -237,7 +242,8 @@ public class CardService : ICardService
       ScryfallId = existing.ScryfallId,
       Name = existing.Name,
       ScryfallUri = existing.ScryfallUri,
-      ScryfallImageUri = existing.ScryfallImageUri
+      ScryfallImageUri = existing.ScryfallImageUri,
+      Aliases = existing.Aliases?.Select(e => e.Name).ToArray(),
     };
   }
 }

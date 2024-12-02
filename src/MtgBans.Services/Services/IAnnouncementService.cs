@@ -32,6 +32,11 @@ public class AnnouncementService : IAnnouncementService
       .OrderBy(a => a.DateEffective)
       .ToListAsync(cancellationToken);
 
+    foreach (var announcement in announcements)
+    {
+      announcement.Changes = announcement.Changes.OrderBy(c => c.Format.DisplayOrder).ToList();
+    }
+
     return announcements.Select(EntityToModel);
   }
 
@@ -41,6 +46,7 @@ public class AnnouncementService : IAnnouncementService
     {
       Summary = model.Summary,
       Sources = model.Sources,
+      DateAnnounced = model.DateAnnounced,
       DateEffective = model.DateEffective,
       Changes = new List<CardLegalityEvent>()
     };
@@ -61,7 +67,7 @@ public class AnnouncementService : IAnnouncementService
         var evt = new CardLegalityEvent
         {
           FormatId = format?.Id,
-          CardScryfallId = cardModels.First(e => e.Name == card).ScryfallId,
+          CardScryfallId = cardModels.First(e => e.Name == card || e.Aliases.Contains(card)).ScryfallId,
           DateEffective = model.DateEffective,
           Type = change.Type
         };
@@ -79,6 +85,7 @@ public class AnnouncementService : IAnnouncementService
     return new AnnouncementModel
     {
       Id = announcement.Id,
+      DateAnnounced = announcement.DateAnnounced,
       DateEffective = announcement.DateEffective,
       Summary = announcement.Summary,
       Sources = announcement.Sources,

@@ -61,14 +61,10 @@ public class ExpansionService : IExpansionService
 
   private static List<ExpansionLegality> GetLegalities(ScryfallSet expansion, List<Format> formats)
   {
-    List<string> formatsToSupport = ["Vintage", "Legacy", "Commander", "Pauper"];
-
-    string[] standardLegalTypes = ["core", "expansion"];
-    if (standardLegalTypes.Contains(expansion.SetType))
-      formatsToSupport.AddRange(["Standard", "Modern"]);
+    string[] coreTypes = ["core", "expansion"];
 
     var legalities = formats
-      .Where(f => formatsToSupport.Contains(f.Name))
+      .Where(f => f.IsActive && (!f.IsCoreOnly || coreTypes.Contains(expansion.SetType)))
       .Select(f => new ExpansionLegality
       {
         Format = f,

@@ -155,7 +155,9 @@ public class CardService : ICardService
     List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {
-    var existing = existingCards.FirstOrDefault(c => c.Name == cardName || c.Aliases.Any(a => a.Name == cardName));
+    var existing = existingCards.FirstOrDefault(c =>
+      c.Name.Equals(cardName, StringComparison.InvariantCultureIgnoreCase) ||
+      c.Aliases.Any(a => string.Equals(a.Name, cardName, StringComparison.InvariantCultureIgnoreCase)));
 
     if (existing is not null) return EntityToModel(existing);
 

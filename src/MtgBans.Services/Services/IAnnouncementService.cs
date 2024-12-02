@@ -67,7 +67,10 @@ public class AnnouncementService : IAnnouncementService
         var evt = new CardLegalityEvent
         {
           FormatId = format?.Id,
-          CardScryfallId = cardModels.First(e => e.Name == card || e.Aliases.Contains(card)).ScryfallId,
+          CardScryfallId = cardModels.First(e =>
+            string.Equals(e.Name, card, StringComparison.InvariantCultureIgnoreCase) ||
+            e.Aliases.Contains(card, StringComparer.InvariantCultureIgnoreCase)
+          ).ScryfallId,
           DateEffective = model.DateEffective,
           Type = change.Type
         };

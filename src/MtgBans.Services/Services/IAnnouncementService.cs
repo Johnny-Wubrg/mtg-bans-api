@@ -46,6 +46,7 @@ public class AnnouncementService : IAnnouncementService
     {
       Summary = model.Summary,
       Sources = model.Sources,
+      DateAnnounced = model.DateAnnounced,
       DateEffective = model.DateEffective,
       Changes = new List<CardLegalityEvent>()
     };
@@ -84,6 +85,7 @@ public class AnnouncementService : IAnnouncementService
     return new AnnouncementModel
     {
       Id = announcement.Id,
+      DateAnnounced = announcement.DateAnnounced,
       DateEffective = announcement.DateEffective,
       Summary = announcement.Summary,
       Sources = announcement.Sources,

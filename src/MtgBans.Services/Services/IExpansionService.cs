@@ -61,50 +61,21 @@ public class ExpansionService : IExpansionService
 
   private static List<ExpansionLegality> GetLegalities(ScryfallSet expansion, List<Format> formats)
   {
-    var legalities = new List<ExpansionLegality>
-    {
-      new()
-      {
-        Format = formats.FirstOrDefault(e => e.Name == "Vintage"),
-        DateEntered = expansion.ReleasedAt
-      },
-      new()
-      {
-        Format = formats.FirstOrDefault(e => e.Name == "Legacy"),
-        DateEntered = expansion.ReleasedAt
-      },
-      new()
-      {
-        Format = formats.FirstOrDefault(e => e.Name == "Commander"),
-        DateEntered = expansion.ReleasedAt
-      },
-      new()
-      {
-        Format = formats.FirstOrDefault(e => e.Name == "Pauper"),
-        DateEntered = expansion.ReleasedAt
-      }
-    };
+    List<string> formatsToSupport = ["Vintage", "Legacy", "Commander", "Pauper"];
 
     string[] standardLegalTypes = ["core", "expansion"];
     if (standardLegalTypes.Contains(expansion.SetType))
-    {
-      legalities.Add(
-        new ExpansionLegality
-        {
-          Format = formats.FirstOrDefault(e => e.Name == "Standard"),
-          DateEntered = expansion.ReleasedAt
-        }
-      );
-      legalities.Add(
-        new ExpansionLegality
-        {
-          Format = formats.FirstOrDefault(e => e.Name == "Modern"),
-          DateEntered = expansion.ReleasedAt
-        }
-      );
-    }
+      formatsToSupport.AddRange(["Standard", "Modern"]);
 
-    return legalities;
+    var legalities = formats
+      .Where(f => formatsToSupport.Contains(f.Name))
+      .Select(f => new ExpansionLegality
+      {
+        Format = f,
+        DateEntered = expansion.ReleasedAt
+      });
+
+    return legalities.ToList();
   }
 
   public async Task<IEnumerable<ExpansionModel>> GetAll(CancellationToken cancellationToken = default)

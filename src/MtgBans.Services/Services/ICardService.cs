@@ -235,7 +235,8 @@ public class CardService : ICardService
       ScryfallId = existing.ScryfallId,
       Name = existing.Name,
       ScryfallUri = existing.ScryfallUri,
-      ScryfallImageUri = existing.ScryfallImageUri
+      ScryfallImageUri = existing.ScryfallImageUri,
+      Aliases = existing.Aliases?.Select(e => e.Name).ToArray(),
     };
   }
 }

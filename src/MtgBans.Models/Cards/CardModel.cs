@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MtgBans.Models.Cards;
 
 public class CardModel
@@ -25,4 +27,10 @@ public class CardModel
   /// </summary>
   /// <example>https://scryfall.com/card/gn3/101/llanowar-elves</example>
   public Uri ScryfallUri { get; set; }
+  
+  /// <summary>
+  /// Known aliases for a card
+  /// </summary>
+  [JsonIgnore]
+  public string[] Aliases { get; set; }
 }

@@ -22,7 +22,10 @@ public class FormatService : IFormatService
 
   public async Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken = default)
   {
-    var formats = await _context.Formats.Include(f => f.Events).ToListAsync(cancellationToken);
+    var formats = await _context.Formats
+      .OrderBy(f => f.DisplayOrder)
+      .Include(f => f.Events)
+      .ToListAsync(cancellationToken);
     return formats.Select(EntityToModel);
   }
 

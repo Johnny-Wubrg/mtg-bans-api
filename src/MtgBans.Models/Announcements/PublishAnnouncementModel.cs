@@ -4,6 +4,13 @@ namespace MtgBans.Models.Announcements;
 
 public class PublishAnnouncementModel
 {
+
+  /// <summary>
+  /// Announcement Date of the change sets
+  /// </summary>
+  /// <example>1997-03-14</example>
+  public DateOnly DateAnnounced { get; set; }
+  
   /// <summary>
   /// Effective Date of the change sets
   /// </summary>

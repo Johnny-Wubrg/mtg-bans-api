@@ -188,6 +188,7 @@ public class CardService : ICardService
         ScryfallUri = lastPrinting.ScryfallUri,
         ScryfallImageUri = lastPrinting.ImageUris.Png,
         Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
+        Aliases = [],
         LegalityEvents = new List<CardLegalityEvent>
         {
           new()
@@ -243,7 +244,7 @@ public class CardService : ICardService
       Name = existing.Name,
       ScryfallUri = existing.ScryfallUri,
       ScryfallImageUri = existing.ScryfallImageUri,
-      Aliases = existing.Aliases?.Select(e => e.Name).ToArray(),
+      Aliases = existing.Aliases?.Select(e => e.Name).ToArray() ?? [],
     };
   }
 }

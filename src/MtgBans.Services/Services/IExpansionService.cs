@@ -5,6 +5,7 @@ using MtgBans.Data.Entities;
 using MtgBans.Models.Expansions;
 using MtgBans.Scryfall.Clients;
 using MtgBans.Scryfall.Models;
+using MtgBans.Services.Constants;
 
 namespace MtgBans.Services.Services;
 
@@ -38,10 +39,8 @@ public class ExpansionService : IExpansionService
     var existingExpansions = await _context.Expansions.Select(e => e.ScryfallId)
       .ToListAsync(cancellationToken: cancellationToken);
 
-    string[] ignoredTypes = ["memorabilia", "token", "minigame", "vanguard"];
-
     var expansions = scryfallSets.Data
-      .Where(e => !existingExpansions.Contains(e.Id) && !e.Digital && !ignoredTypes.Contains(e.SetType))
+      .Where(e => !existingExpansions.Contains(e.Id) && !e.Digital && !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType))
       .Select(e => new Expansion
       {
         ScryfallId = e.Id,

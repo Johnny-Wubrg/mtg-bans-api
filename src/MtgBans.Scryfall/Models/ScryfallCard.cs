@@ -19,4 +19,5 @@ public record ScryfallCard
   public Uri ScryfallUri { get; set; }
   public ScryfallImages ImageUris { get; set; }
   public Guid SetId { get; set; }
+  public string SetType { get; set; }
 }

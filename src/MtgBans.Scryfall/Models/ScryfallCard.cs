@@ -20,4 +20,11 @@ public record ScryfallCard
   public ScryfallImages ImageUris { get; set; }
   public Guid SetId { get; set; }
   public string SetType { get; set; }
+  
+  public ScryfallCardFace[] CardFaces { get; set; }
+}
+
+public record ScryfallCardFace
+{
+  public ScryfallImages ImageUris { get; set; }
 }

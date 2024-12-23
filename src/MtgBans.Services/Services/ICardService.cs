@@ -5,6 +5,7 @@ using MtgBans.Models.Cards;
 using MtgBans.Models.Formats;
 using MtgBans.Scryfall.Clients;
 using MtgBans.Scryfall.Models;
+using MtgBans.Services.Constants;
 using Refit;
 
 namespace MtgBans.Services.Services;
@@ -164,9 +165,10 @@ public class CardService : ICardService
     try
     {
       var scryfallCards = await _scryfallClient.GetCardByName(cardName, cancellationToken);
+      var scryfallCardsData = scryfallCards.Data.Where(e => !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType)).ToArray();
 
-      var firstPrinting = scryfallCards.Data.First();
-      var lastPrinting = scryfallCards.Data.Last();
+      var firstPrinting = scryfallCardsData.First();
+      var lastPrinting = scryfallCardsData.Last();
       var oracleId = firstPrinting.OracleId;
 
       var aliased = existingCards.FirstOrDefault(c => c.ScryfallId == oracleId);

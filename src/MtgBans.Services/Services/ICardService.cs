@@ -188,7 +188,7 @@ public class CardService : ICardService
         ScryfallId = oracleId,
         Name = firstPrinting.Name,
         ScryfallUri = lastPrinting.ScryfallUri,
-        ScryfallImageUri = lastPrinting.ImageUris.Png,
+        ScryfallImageUri = lastPrinting.CardFaces is not null ? lastPrinting.CardFaces[0].ImageUris.Png : lastPrinting.ImageUris.Png,
         Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
         Aliases = [],
         LegalityEvents = new List<CardLegalityEvent>

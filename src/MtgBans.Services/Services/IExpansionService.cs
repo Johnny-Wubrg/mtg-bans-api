@@ -38,7 +38,7 @@ public class ExpansionService : IExpansionService
     var existingExpansions = await _context.Expansions.Select(e => e.ScryfallId)
       .ToListAsync(cancellationToken: cancellationToken);
 
-    string[] ignoredTypes = ["funny", "memorabilia", "token", "minigame", "vanguard"];
+    string[] ignoredTypes = ["memorabilia", "token", "minigame", "vanguard"];
 
     var expansions = scryfallSets.Data
       .Where(e => !existingExpansions.Contains(e.Id) && !e.Digital && !ignoredTypes.Contains(e.SetType))

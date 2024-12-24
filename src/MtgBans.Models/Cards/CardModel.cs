@@ -29,6 +29,12 @@ public class CardModel
   public Uri ScryfallUri { get; set; }
   
   /// <summary>
+  /// Classification for groups of cards that were banned
+  /// </summary>
+  /// <example>Banned for ante</example>
+  public string Classification { get; set; }
+  
+  /// <summary>
   /// Known aliases for a card
   /// </summary>
   [JsonIgnore]

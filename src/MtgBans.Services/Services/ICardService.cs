@@ -65,19 +65,24 @@ public class CardService : ICardService
 
   public async Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken)
   {
-    var cards = await _context.Cards.Include(e => e.LegalityEvents).AsNoTracking().ToListAsync(cancellationToken);
+    var cards = await _context.Cards
+      .Include(c => c.LegalityEvents)
+      .Include(c => c.Classification)
+      .AsNoTracking()
+      .ToListAsync(cancellationToken);
+    
     var formats = await _context.Formats.AsNoTracking().ToListAsync(cancellationToken);
 
     return formats
       .OrderBy(f => f.DisplayOrder)
       .Select(format => new FormatBansModel
-    {
-      Format = format.Name,
-      Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
-        date),
-      Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
-        date)
-    });
+      {
+        Format = format.Name,
+        Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
+          date),
+        Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
+          date)
+      });
   }
 
   public async Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken)
@@ -166,7 +171,8 @@ public class CardService : ICardService
     try
     {
       var scryfallCards = await _scryfallClient.GetCardByName(cardName, cancellationToken);
-      var scryfallCardsData = scryfallCards.Data.Where(e => !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType)).ToArray();
+      var scryfallCardsData = scryfallCards.Data.Where(e => !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType))
+        .ToArray();
 
       var firstPrinting = scryfallCardsData.First();
       var lastPrinting = scryfallCardsData.Last();
@@ -183,6 +189,7 @@ public class CardService : ICardService
 
         return EntityToModel(aliased);
       }
+
       var rgx = new Regex("[^a-z]+");
       var newCard = new Card
       {
@@ -190,7 +197,9 @@ public class CardService : ICardService
         Name = firstPrinting.Name,
         SortName = rgx.Replace(firstPrinting.Name.ToLower(), string.Empty),
         ScryfallUri = lastPrinting.ScryfallUri,
-        ScryfallImageUri = lastPrinting.CardFaces is not null ? lastPrinting.CardFaces[0].ImageUris.Png : lastPrinting.ImageUris.Png,
+        ScryfallImageUri = lastPrinting.CardFaces is not null
+          ? lastPrinting.CardFaces[0].ImageUris.Png
+          : lastPrinting.ImageUris.Png,
         Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
         Aliases = [],
         LegalityEvents = new List<CardLegalityEvent>

@@ -70,7 +70,7 @@ public class CardService : ICardService
       .Include(c => c.Classification)
       .AsNoTracking()
       .ToListAsync(cancellationToken);
-    
+
     var formats = await _context.Formats.AsNoTracking().ToListAsync(cancellationToken);
 
     return formats
@@ -257,7 +257,13 @@ public class CardService : ICardService
       Name = entity.Name,
       ScryfallUri = entity.ScryfallUri,
       ScryfallImageUri = entity.ScryfallImageUri,
-      Classification = entity.Classification?.Summary,
+      Classification = entity.Classification is null
+        ? null
+        : new ClassificationModel
+        {
+          Id = entity.Classification.Id,
+          Summary = entity.Classification.Summary
+        },
       Aliases = entity.Aliases?.Select(e => e.Name).ToArray() ?? [],
     };
   }

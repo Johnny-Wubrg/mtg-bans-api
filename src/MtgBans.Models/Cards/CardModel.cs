@@ -32,11 +32,26 @@ public class CardModel
   /// Classification for groups of cards that were banned
   /// </summary>
   /// <example>Banned for ante</example>
-  public string Classification { get; set; }
+  public ClassificationModel Classification { get; set; }
   
   /// <summary>
   /// Known aliases for a card
   /// </summary>
   [JsonIgnore]
   public string[] Aliases { get; set; }
+}
+
+public class ClassificationModel
+{
+  
+  /// <summary>
+  /// Id of the classification for sorting purposes
+  /// </summary>
+  public int Id { get; set; }
+  
+  /// <summary>
+  /// Summary of the classification
+  /// </summary>
+  /// <example>Banned for ante</example>
+  public string Summary { get; set; }
 }

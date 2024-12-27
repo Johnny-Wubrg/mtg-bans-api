@@ -87,7 +87,10 @@ public class CardService : ICardService
 
   public async Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken)
   {
-    var cards = await _context.Cards.Include(e => e.LegalityEvents).ThenInclude(l => l.Format).AsNoTracking()
+    var cards = await _context.Cards
+      .Include(e => e.LegalityEvents).ThenInclude(l => l.Format)
+      .Include(c => c.Classification)
+      .AsNoTracking()
       .ToListAsync(cancellationToken);
 
     CardLegalityEventType[] bannedOrRestricted = [CardLegalityEventType.Banned, CardLegalityEventType.Restricted];

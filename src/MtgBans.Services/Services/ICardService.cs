@@ -71,18 +71,37 @@ public class CardService : ICardService
       .AsNoTracking()
       .ToListAsync(cancellationToken);
 
-    var formats = await _context.Formats.AsNoTracking().ToListAsync(cancellationToken);
+    var formats = await _context.Formats
+      .Include(f => f.Events)
+      .AsNoTracking()
+      .ToListAsync(cancellationToken);
 
     return formats
+      .Where(f => f.Events.Any(e => e.DateEffective <= date))
       .OrderBy(f => f.DisplayOrder)
       .Select(format => new FormatBansModel
       {
-        Format = format.Name,
+        Format = GetFormatName(format, date),
         Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
           date),
         Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
           date)
       });
+  }
+
+  private static string GetFormatName(Format format, DateOnly date)
+  {
+    var latestNameUpdate = format.Events
+      .Where(e => e.DateEffective <= date && e.NameUpdate is not null)
+      .MaxBy(e => e.DateEffective);
+
+    if (latestNameUpdate is null) return format.Name;
+
+    var canonical = latestNameUpdate.NameUpdate;
+
+    if (canonical != format.Name) canonical += $" ({format.Name})";
+
+    return canonical;
   }
 
   public async Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken)

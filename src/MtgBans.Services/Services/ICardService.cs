@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
@@ -64,19 +65,24 @@ public class CardService : ICardService
 
   public async Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken)
   {
-    var cards = await _context.Cards.Include(e => e.LegalityEvents).AsNoTracking().ToListAsync(cancellationToken);
+    var cards = await _context.Cards
+      .Include(c => c.LegalityEvents)
+      .Include(c => c.Classification)
+      .AsNoTracking()
+      .ToListAsync(cancellationToken);
+
     var formats = await _context.Formats.AsNoTracking().ToListAsync(cancellationToken);
 
     return formats
       .OrderBy(f => f.DisplayOrder)
       .Select(format => new FormatBansModel
-    {
-      Format = format.Name,
-      Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
-        date),
-      Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
-        date)
-    });
+      {
+        Format = format.Name,
+        Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
+          date),
+        Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
+          date)
+      });
   }
 
   public async Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken)
@@ -131,7 +137,7 @@ public class CardService : ICardService
     List<Card> cards,
     DateOnly date)
   {
-    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.Name).Select(EntityToModel);
+    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.SortName).Select(EntityToModel);
   }
 
   private static bool CardHasLegality(Card c, CardLegalityEventType type, int formatId, DateOnly date)
@@ -165,7 +171,8 @@ public class CardService : ICardService
     try
     {
       var scryfallCards = await _scryfallClient.GetCardByName(cardName, cancellationToken);
-      var scryfallCardsData = scryfallCards.Data.Where(e => !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType)).ToArray();
+      var scryfallCardsData = scryfallCards.Data.Where(e => !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType))
+        .ToArray();
 
       var firstPrinting = scryfallCardsData.First();
       var lastPrinting = scryfallCardsData.Last();
@@ -183,12 +190,16 @@ public class CardService : ICardService
         return EntityToModel(aliased);
       }
 
+      var rgx = new Regex("[^a-z]+");
       var newCard = new Card
       {
         ScryfallId = oracleId,
         Name = firstPrinting.Name,
+        SortName = rgx.Replace(firstPrinting.Name.ToLower(), string.Empty),
         ScryfallUri = lastPrinting.ScryfallUri,
-        ScryfallImageUri = lastPrinting.CardFaces is not null ? lastPrinting.CardFaces[0].ImageUris.Png : lastPrinting.ImageUris.Png,
+        ScryfallImageUri = lastPrinting.CardFaces is not null
+          ? lastPrinting.CardFaces[0].ImageUris.Png
+          : lastPrinting.ImageUris.Png,
         Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
         Aliases = [],
         LegalityEvents = new List<CardLegalityEvent>
@@ -238,15 +249,22 @@ public class CardService : ICardService
       }).ToArray();
   }
 
-  public static CardModel EntityToModel(Card existing)
+  public static CardModel EntityToModel(Card entity)
   {
     return new CardModel
     {
-      ScryfallId = existing.ScryfallId,
-      Name = existing.Name,
-      ScryfallUri = existing.ScryfallUri,
-      ScryfallImageUri = existing.ScryfallImageUri,
-      Aliases = existing.Aliases?.Select(e => e.Name).ToArray() ?? [],
+      ScryfallId = entity.ScryfallId,
+      Name = entity.Name,
+      ScryfallUri = entity.ScryfallUri,
+      ScryfallImageUri = entity.ScryfallImageUri,
+      Classification = entity.Classification is null
+        ? null
+        : new ClassificationModel
+        {
+          Id = entity.Classification.Id,
+          Summary = entity.Classification.Summary
+        },
+      Aliases = entity.Aliases?.Select(e => e.Name).ToArray() ?? [],
     };
   }
 }

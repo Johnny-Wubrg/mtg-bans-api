@@ -9,6 +9,9 @@ public class Card
 
   [Required, MaxLength(150)]
   public string Name { get; set; }
+  
+  [Required, MaxLength(150)]
+  public string SortName { get; set; }
 
   [Required, MaxLength(100)]
   public Uri ScryfallImageUri { get; set; }
@@ -21,4 +24,6 @@ public class Card
   public ICollection<Printing> Printings { get; set; }
   
   public ICollection<CardAlias> Aliases { get; set; }
+  
+  public Classification Classification { get; set; }
 }

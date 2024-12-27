@@ -92,8 +92,8 @@ public class CardService : ICardService
       ScryfallUri = c.ScryfallUri,
       ScryfallImageUri = c.ScryfallImageUri,
       Timeline = c.LegalityEvents
-        .OrderBy(e => e.Format.DisplayOrder)
         .Where(e => e.FormatId.HasValue)
+        .OrderBy(e => e.Format.DisplayOrder)
         .GroupBy(e => e.FormatId).Select(g =>
           new CardTimelineFormatModel
           {

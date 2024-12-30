@@ -275,7 +275,7 @@ public class CardService : ICardService
       ? null
       : new ClassificationModel
       {
-        Id = classification.Id,
+        DisplayOrder = classification.DisplayOrder,
         Summary = classification.Summary
       };
   }

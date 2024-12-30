@@ -47,7 +47,7 @@ public class ClassificationModel
   /// <summary>
   /// Id of the classification for sorting purposes
   /// </summary>
-  public int Id { get; set; }
+  public int DisplayOrder { get; set; }
   
   /// <summary>
   /// Summary of the classification

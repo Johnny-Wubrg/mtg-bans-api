@@ -269,7 +269,7 @@ public class CardService : ICardService
   {
     var classification = entity.Classifications
       .Where(e => date >= e.DateApplied && (e.DateLifted is null || date < e.DateLifted))
-      .MaxBy(e => e.DateApplied);
+      .MinBy(e => e.DateApplied);
 
     return classification is null
       ? null

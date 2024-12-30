@@ -25,5 +25,5 @@ public class Card
   
   public ICollection<CardAlias> Aliases { get; set; }
   
-  public Classification Classification { get; set; }
+  public ICollection<Classification> Classifications { get; set; }
 }

@@ -7,6 +7,7 @@ using MtgBans.Models.Formats;
 using MtgBans.Scryfall.Clients;
 using MtgBans.Scryfall.Models;
 using MtgBans.Services.Constants;
+using MtgBans.Services.Extensions;
 using Refit;
 
 namespace MtgBans.Services.Services;
@@ -67,7 +68,7 @@ public class CardService : ICardService
   {
     var cards = await _context.Cards
       .Include(c => c.LegalityEvents)
-      .Include(c => c.Classification)
+      .Include(c => c.Classifications)
       .AsNoTracking()
       .ToListAsync(cancellationToken);
 
@@ -137,7 +138,7 @@ public class CardService : ICardService
     List<Card> cards,
     DateOnly date)
   {
-    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.SortName).Select(EntityToModel);
+    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.SortName).Select(e => EntityToModel(e, date));
   }
 
   private static bool CardHasLegality(Card c, CardLegalityEventType type, int formatId, DateOnly date)
@@ -249,7 +250,9 @@ public class CardService : ICardService
       }).ToArray();
   }
 
-  public static CardModel EntityToModel(Card entity)
+  public static CardModel EntityToModel(Card entity) => EntityToModel(entity, DateOnly.FromDateTime(DateTime.Now));
+  
+  public static CardModel EntityToModel(Card entity, DateOnly date)
   {
     return new CardModel
     {
@@ -257,14 +260,23 @@ public class CardService : ICardService
       Name = entity.Name,
       ScryfallUri = entity.ScryfallUri,
       ScryfallImageUri = entity.ScryfallImageUri,
-      Classification = entity.Classification is null
-        ? null
-        : new ClassificationModel
-        {
-          Id = entity.Classification.Id,
-          Summary = entity.Classification.Summary
-        },
+      Classification = MapClassification(entity, date),
       Aliases = entity.Aliases?.Select(e => e.Name).ToArray() ?? [],
     };
+  }
+
+  private static ClassificationModel MapClassification(Card entity, DateOnly date)
+  {
+    var classification = entity.Classifications
+      .Where(e => date >= e.DateApplied && (e.DateLifted is null || date < e.DateLifted))
+      .MaxBy(e => e.DateApplied);
+
+    return classification is null
+      ? null
+      : new ClassificationModel
+      {
+        Id = classification.Id,
+        Summary = classification.Summary
+      };
   }
 }

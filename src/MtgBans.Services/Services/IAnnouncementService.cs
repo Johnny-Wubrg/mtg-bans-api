@@ -27,7 +27,7 @@ public class AnnouncementService : IAnnouncementService
   public async Task<IEnumerable<AnnouncementModel>> GetAll(CancellationToken cancellationToken = default)
   {
     var announcements = await _context.Announcements.AsNoTracking()
-      .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classification)
+      .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classifications)
       .Include(a => a.Changes).ThenInclude(e => e.Format)
       .OrderBy(a => a.DateEffective)
       .ToListAsync(cancellationToken);
@@ -98,7 +98,7 @@ public class AnnouncementService : IAnnouncementService
         Changes = f.GroupBy(g => g.Type).Select(t => new AnnouncementChangeModel
         {
           Type = t.Key,
-          Cards = t.OrderBy(e => e.Card.SortName).Select(c => CardService.EntityToModel(c.Card)).ToList()
+          Cards = t.OrderBy(e => e.Card.SortName).Select(c => CardService.EntityToModel(c.Card, announcement.DateEffective)).ToList()
         })
       })
     };

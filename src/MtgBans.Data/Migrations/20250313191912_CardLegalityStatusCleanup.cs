@@ -82,10 +82,10 @@ namespace MtgBans.Data.Migrations
             
             migrationBuilder.Sql(@"
                 UPDATE card_legality_event 
-                SET type = case when status_id >= 7  
-                    then 2
-                    else status_id - 1
-                end
+                SET type = CASE WHEN status_id >= 7  
+                    THEN 2
+                    ELSE status_id - 1
+                END
             ");
 
             migrationBuilder.AddPrimaryKey(

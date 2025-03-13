@@ -48,14 +48,14 @@ namespace MtgBans.Data.Migrations
             
             migrationBuilder.Sql(@"
                 UPDATE card_legality_event 
-                SET status_id = case when type = 2 and format_id = 4 
-                    then 
-                        case when date_effective > '2025-01-01'
-                            then 8
-                            else 7
-                        end
-                    else type + 1
-                end
+                SET status_id = CASE WHEN type = 2 AND format_id = 4 
+                    THEN
+                        CASE WHEN date_effective > '2025-01-01'
+                            THEN 8
+                            ELSE 7
+                        END
+                    ELSE type + 1
+                END
             ");
 
             migrationBuilder.CreateIndex(

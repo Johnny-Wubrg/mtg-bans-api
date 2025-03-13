@@ -90,10 +90,6 @@ public class CardService : ICardService
       .Select(format => new FormatBansModel
       {
         Format = GetFormatName(format, date),
-        Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
-          date),
-        Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
-          date),
         Limitations = cards
           .Select(c => new
           {
@@ -181,24 +177,6 @@ public class CardService : ICardService
     });
   }
 
-  private static IEnumerable<CardModel> GetLimitedCardsByFormat(
-    int formatId,
-    CardLegalityEventType type,
-    List<Card> cards,
-    DateOnly date)
-  {
-    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.SortName)
-      .Select(e => EntityToModel(e, date));
-  }
-
-  private static bool CardHasLegality(Card c, CardLegalityEventType type, int formatId, DateOnly date)
-  {
-    return c.LegalityEvents
-      .Where(l => l.FormatId == formatId && l.DateEffective <= date)
-      .OrderBy(l => l.DateEffective)
-      .LastOrDefault()?.Type == type;
-  }
-
   private async Task<Printing[]> RefreshCardPrintings(Card card, List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {
@@ -257,7 +235,7 @@ public class CardService : ICardService
         {
           new()
           {
-            Type = CardLegalityEventType.Released,
+            StatusId = 1,
             DateEffective = firstPrinting.ReleasedAt
           }
         }

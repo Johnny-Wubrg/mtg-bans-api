@@ -56,12 +56,15 @@ public class AnnouncementService : IAnnouncementService
     var cards = await _cardService.ResolveCards(cardNames, cancellationToken);
     var cardModels = cards as CardModel[] ?? cards.ToArray();
     var formats = await _context.Formats.ToListAsync(cancellationToken: cancellationToken);
+    var statuses = await _context.CardLegalityStatuses.ToListAsync(cancellationToken: cancellationToken);
 
     foreach (var change in model.Changes)
     {
-      var format = formats.FirstOrDefault(e => e.Name == change.Format);
-
+      var format = formats.SingleOrDefault(e => e.Name == change.Format);
       if (format is null) throw new InvalidEntryOperation(nameof(change.Format), change.Format);
+
+      var status = statuses.SingleOrDefault(e => e.Label == change.Type);
+      if (status is null) throw new InvalidEntryOperation(nameof(change.Type), change.Type);
 
       foreach (var card in change.Cards)
       {
@@ -73,7 +76,7 @@ public class AnnouncementService : IAnnouncementService
             e.Aliases.Contains(card, StringComparer.InvariantCultureIgnoreCase)
           ).ScryfallId,
           DateEffective = model.DateEffective,
-          Type = change.Type
+          StatusId = status.Id
         };
 
         announcement.Changes.Add(evt);
@@ -102,7 +105,8 @@ public class AnnouncementService : IAnnouncementService
           .Select(t => new AnnouncementChangeModel
           {
             Type = t.Key,
-            Cards = t.OrderBy(e => e.Card.SortName).Select(c => CardService.EntityToModel(c.Card, announcement.DateEffective)).ToList()
+            Cards = t.OrderBy(e => e.Card.SortName)
+              .Select(c => CardService.EntityToModel(c.Card, announcement.DateEffective)).ToList()
           })
       })
     };

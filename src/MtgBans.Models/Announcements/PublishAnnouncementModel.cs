@@ -38,7 +38,7 @@ public class PublishAnnouncementChangeModel
   /// Type of the legality change
   /// </summary>
   /// <example>Banned</example>
-  public CardLegalityEventType Type { get; set; }
+  public string Type { get; set; }
   
   /// <summary>
   /// The name of the format affected

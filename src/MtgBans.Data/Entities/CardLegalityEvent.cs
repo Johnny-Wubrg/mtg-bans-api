@@ -31,4 +31,6 @@ public class CardLegalityEvent
   [ForeignKey(nameof(FormatId))]
   public Format Format { get; set; }
   public CardLegalityEventType Type { get; set; }
+  
+  public CardLegalityStatus Status { get; set; }
 }

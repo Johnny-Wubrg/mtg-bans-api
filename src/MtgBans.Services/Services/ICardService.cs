@@ -101,6 +101,7 @@ public class CardService : ICardService
     var canonical = latestNameUpdate.NameUpdate;
 
     if (canonical != format.Name) canonical += $" ({format.Name})";
+    if (!format.IsActive && date >= format.Events.Max(e => e.DateEffective)) canonical += " (discontinued)";
 
     return canonical;
   }

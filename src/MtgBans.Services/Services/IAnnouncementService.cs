@@ -29,6 +29,7 @@ public class AnnouncementService : IAnnouncementService
     var announcements = await _context.Announcements.AsNoTracking()
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classifications)
       .Include(a => a.Changes).ThenInclude(e => e.Format)
+      .Include(a => a.Changes).ThenInclude(e => e.Status)
       .OrderBy(a => a.DateEffective)
       .ToListAsync(cancellationToken);
 
@@ -95,11 +96,14 @@ public class AnnouncementService : IAnnouncementService
       Changesets = announcement.Changes.GroupBy(e => e.FormatId).Select(f => new AnnouncementFormatModel
       {
         Format = f.First().Format.Name,
-        Changes = f.GroupBy(g => g.Type).Select(t => new AnnouncementChangeModel
-        {
-          Type = t.Key,
-          Cards = t.OrderBy(e => e.Card.SortName).Select(c => CardService.EntityToModel(c.Card, announcement.DateEffective)).ToList()
-        })
+        Changes = f
+          .OrderBy(g => g.Status.DisplayOrder)
+          .GroupBy(g => g.Status.Label)
+          .Select(t => new AnnouncementChangeModel
+          {
+            Type = t.Key,
+            Cards = t.OrderBy(e => e.Card.SortName).Select(c => CardService.EntityToModel(c.Card, announcement.DateEffective)).ToList()
+          })
       })
     };
   }

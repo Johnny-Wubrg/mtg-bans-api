@@ -47,7 +47,7 @@ public class CardService : ICardService
 
     var existingSets =
       await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
-    
+
     var tasks = cardNames.Select(e => ResolveCard(e, existingCards, existingSets, cancellationToken));
 
     var cards = await Task.WhenAll(tasks);
@@ -74,7 +74,7 @@ public class CardService : ICardService
   public async Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken)
   {
     var cards = await _context.Cards
-      .Include(c => c.LegalityEvents)
+      .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
       .Include(c => c.Classifications)
       .AsNoTracking()
       .ToListAsync(cancellationToken);
@@ -93,7 +93,25 @@ public class CardService : ICardService
         Banned = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Banned, cards,
           date),
         Restricted = GetLimitedCardsByFormat(format.Id, CardLegalityEventType.Restricted, cards,
-          date)
+          date),
+        Limitations = cards
+          .Select(c => new
+          {
+            Card = c,
+            LastEvent = c.LegalityEvents.Where(l => l.FormatId == format.Id && l.DateEffective <= date)
+              .MaxBy(e => e.DateEffective)
+          })
+          .Where(e => e.LastEvent is not null && e.LastEvent.Status.Type == CardLegalityStatusType.Limitation)
+          .OrderBy(c => c.LastEvent.Status.DisplayOrder)
+          .GroupBy(c => c.LastEvent.Status.Label)
+          .Select(g => new FormatBansStatusModel
+          {
+            Status = g.Key,
+            Cards = g
+              .OrderBy(c => c.Card.SortName)
+              .Select(c => EntityToModel(c.Card))
+              .ToList(),
+          })
       });
   }
 
@@ -117,11 +135,11 @@ public class CardService : ICardService
   {
     var cards = await _context.Cards
       .Include(e => e.LegalityEvents).ThenInclude(l => l.Format)
+      .Include(e => e.LegalityEvents).ThenInclude(l => l.Status)
       .Include(c => c.Classifications)
       .AsNoTracking()
       .ToListAsync(cancellationToken);
 
-    CardLegalityEventType[] bannedOrRestricted = [CardLegalityEventType.Banned, CardLegalityEventType.Restricted];
     return cards.Select(c => new CardTimelineModel
     {
       ScryfallId = c.ScryfallId,
@@ -145,19 +163,20 @@ public class CardService : ICardService
                 {
                   Start = new CardTimeframeEventModel
                   {
-                    Type = start.Type,
+                    Status = start.Status.Label,
                     Date = start.DateEffective,
                   },
                   End = end is null
                     ? null
                     : new CardTimeframeEventModel
                     {
-                      Type = end.Type,
+                      Status = end.Status.Label,
                       Date = end.DateEffective
-                    }
+                    },
+                  IsLimitation = start.Status.Type == CardLegalityStatusType.Limitation
                 };
               })
-              .Where(e => bannedOrRestricted.Contains(e.Start.Type))
+              .Where(e => e.IsLimitation)
           })
     });
   }

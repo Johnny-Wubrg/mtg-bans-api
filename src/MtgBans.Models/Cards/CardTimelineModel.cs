@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using MtgBans.Data.Entities;
 
 namespace MtgBans.Models.Cards;
@@ -27,14 +28,20 @@ public class CardTimeframeModel
   /// <summary>
   /// The card's status at the start of this timeframe
   /// </summary>
-  /// <example>{ "type": "Banned", date: "1995-01-01" }</example>
+  /// <example>{ "status": "Banned", date: "1995-01-01" }</example>
   public CardTimeframeEventModel Start { get; set; }
 
   /// <summary>
   /// The card's status at the end of this timeframe
   /// </summary>
-  /// <example>{ "type": "Unbanned", date: "1997-01-01" }</example>
+  /// <example>{ "status": "Unbanned", date: "1997-01-01" }</example>
   public CardTimeframeEventModel End { get; set; }
+  
+  /// <summary>
+  /// If the event is a limitation.
+  /// </summary>
+  [JsonIgnore]
+  public bool IsLimitation { get; set; }
 }
 
 public class CardTimeframeEventModel
@@ -43,7 +50,7 @@ public class CardTimeframeEventModel
   /// The status of the card
   /// </summary>
   /// <example>Banned</example>
-  public CardLegalityEventType Type { get; set; }
+  public string Status { get; set; }
   
   /// <summary>
   /// The effective date of this change

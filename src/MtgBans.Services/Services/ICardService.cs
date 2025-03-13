@@ -39,8 +39,15 @@ public class CardService : ICardService
   {
     var cardNames = cardNamesEnumerable.ToArray();
 
-    var existingCards = await _context.Cards.Include(c => c.Aliases).ToListAsync(cancellationToken);
-    var existingSets = await _context.Expansions.Select(e => e.ScryfallId).ToListAsync(cancellationToken);
+    var existingCards = await _context.Cards
+      .Include(c => c.Aliases)
+      .Include(c => c.Classifications)
+      .AsNoTracking()
+      .ToListAsync(cancellationToken);
+
+    var existingSets =
+      await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
+    
     var tasks = cardNames.Select(e => ResolveCard(e, existingCards, existingSets, cancellationToken));
 
     var cards = await Task.WhenAll(tasks);
@@ -161,7 +168,8 @@ public class CardService : ICardService
     List<Card> cards,
     DateOnly date)
   {
-    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.SortName).Select(e => EntityToModel(e, date));
+    return cards.Where(c => CardHasLegality(c, type, formatId, date)).OrderBy(e => e.SortName)
+      .Select(e => EntityToModel(e, date));
   }
 
   private static bool CardHasLegality(Card c, CardLegalityEventType type, int formatId, DateOnly date)
@@ -274,7 +282,7 @@ public class CardService : ICardService
   }
 
   public static CardModel EntityToModel(Card entity) => EntityToModel(entity, DateOnly.FromDateTime(DateTime.Now));
-  
+
   public static CardModel EntityToModel(Card entity, DateOnly date)
   {
     return new CardModel
@@ -290,7 +298,7 @@ public class CardService : ICardService
 
   private static ClassificationModel MapClassification(Card entity, DateOnly date)
   {
-    var classification = entity.Classifications
+    var classification = entity.Classifications?
       .Where(e => date >= e.DateApplied && (e.DateLifted is null || date < e.DateLifted))
       .MinBy(e => e.DateApplied);
 

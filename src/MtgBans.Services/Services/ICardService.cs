@@ -160,6 +160,7 @@ public class CardService : ICardService
                   Start = new CardTimeframeEventModel
                   {
                     Status = start.Status.Label,
+                    StatusType = start.Status.Type,
                     Date = start.DateEffective,
                   },
                   End = end is null
@@ -167,12 +168,12 @@ public class CardService : ICardService
                     : new CardTimeframeEventModel
                     {
                       Status = end.Status.Label,
+                      StatusType = end.Status.Type,
                       Date = end.DateEffective
-                    },
-                  IsLimitation = start.Status.Type == CardLegalityStatusType.Limitation
+                    }
                 };
               })
-              .Where(e => e.IsLimitation)
+              .Where(e => e.Start.StatusType == CardLegalityStatusType.Limitation)
           })
     });
   }

@@ -36,12 +36,6 @@ public class CardTimeframeModel
   /// </summary>
   /// <example>{ "status": "Unbanned", date: "1997-01-01" }</example>
   public CardTimeframeEventModel End { get; set; }
-  
-  /// <summary>
-  /// If the event is a limitation.
-  /// </summary>
-  [JsonIgnore]
-  public bool IsLimitation { get; set; }
 }
 
 public class CardTimeframeEventModel
@@ -51,6 +45,13 @@ public class CardTimeframeEventModel
   /// </summary>
   /// <example>Banned</example>
   public string Status { get; set; }
+  
+  /// <summary>
+  /// The type of status
+  /// </summary>
+  /// <example>Limitation</example>
+  [JsonIgnore]
+  public CardLegalityStatusType StatusType { get; set; }
   
   /// <summary>
   /// The effective date of this change

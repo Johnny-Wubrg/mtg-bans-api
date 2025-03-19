@@ -1,7 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace MtgBans.Data.Entities;
 
+[Index(nameof(Name), IsUnique = true)]
+[Index(nameof(Code), IsUnique = true)]
 public class Expansion
 {
   [Key]
@@ -21,7 +24,7 @@ public class Expansion
   
   [Required]
   public DateOnly DateReleased { get; set; }
-  
+
   public ICollection<ExpansionLegality> Legalities { get; set; }
   
   public ICollection<Printing> Cards { get; set; }

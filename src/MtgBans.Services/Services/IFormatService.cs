@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
@@ -8,7 +9,8 @@ namespace MtgBans.Services.Services;
 public interface IFormatService
 {
   Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken = default);
-  Task<FormatModel> GetById(int id, CancellationToken cancellationToken = default);
+  Task<FormatDetailModel> GetById(int id, CancellationToken cancellationToken = default);
+  Task<FormatDetailModel> GetBySlug(string slug, CancellationToken cancellationToken = default);
 }
 
 public class FormatService : IFormatService
@@ -29,24 +31,40 @@ public class FormatService : IFormatService
     return formats.Select(EntityToModel);
   }
 
-  public async Task<FormatModel> GetById(int id, CancellationToken cancellationToken = default)
+  public Task<FormatDetailModel> GetById(int id, CancellationToken cancellationToken = default) => Get(f => f.Id == id, cancellationToken);
+
+  public Task<FormatDetailModel> GetBySlug(string slug, CancellationToken cancellationToken = default) => Get(f => f.Slug == slug, cancellationToken);
+
+  private async Task<FormatDetailModel> Get(Expression<Func<Format, bool>> expression,
+    CancellationToken cancellationToken)
   {
-    var format = await _context.Formats.Include(f => f.Events).FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
-    return EntityToModel(format);
+    var format = await _context.Formats.Include(f => f.Events).FirstOrDefaultAsync(expression, cancellationToken);
+    return EntityToDetailModel(format);
   }
 
   public static FormatModel EntityToModel(Format format)
   {
-    return new FormatModel
+    var model = new FormatModel();
+    FillBaseModel(format, model);
+    return model;
+  }
+
+  public static FormatDetailModel EntityToDetailModel(Format format)
+  {
+    var model = new FormatDetailModel();
+    FillBaseModel(format, model);
+    return model;
+  }
+
+  private static void FillBaseModel(Format format, FormatModel model)
+  {
+    model.Id = format.Id;
+    model.Name = format.Name;
+    model.Events = format.Events.OrderBy(e => e.DateEffective).Select(e => new FormatEventModel
     {
-      Id = format.Id,
-      Name = format.Name,
-      Events = format.Events.Select(e => new FormatEventModel
-      {
-        NameUpdate = e.NameUpdate,
-        DateEffective = e.DateEffective,
-        Description = e.Description
-      })
-    };
+      NameUpdate = e.NameUpdate,
+      DateEffective = e.DateEffective,
+      Description = e.Description
+    });
   }
 }

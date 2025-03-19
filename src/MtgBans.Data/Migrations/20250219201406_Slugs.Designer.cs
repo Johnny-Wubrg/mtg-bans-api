@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MtgBans.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    partial class MtgBansContextModelSnapshot : ModelSnapshot
+    [Migration("20250219201406_Slugs")]
+    partial class Slugs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,9 +166,9 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("format_id");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int>("Type")
                         .HasColumnType("integer")
-                        .HasColumnName("status_id");
+                        .HasColumnName("type");
 
                     b.HasKey("Id")
                         .HasName("pk_card_legality_event");
@@ -179,39 +182,7 @@ namespace MtgBans.Data.Migrations
                     b.HasIndex("FormatId")
                         .HasDatabaseName("ix_card_legality_event_format_id");
 
-                    b.HasIndex("StatusId")
-                        .HasDatabaseName("ix_card_legality_event_status_id");
-
                     b.ToTable("card_legality_event", (string)null);
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("display_order");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("label");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id")
-                        .HasName("pk_card_legality_statuses");
-
-                    b.ToTable("card_legality_statuses", (string)null);
                 });
 
             modelBuilder.Entity("MtgBans.Data.Entities.Classification", b =>
@@ -498,18 +469,9 @@ namespace MtgBans.Data.Migrations
                         .HasForeignKey("FormatId")
                         .HasConstraintName("fk_card_legality_event_formats_format_id");
 
-                    b.HasOne("MtgBans.Data.Entities.CardLegalityStatus", "Status")
-                        .WithMany()
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_card_legality_event_card_legality_statuses_status_id");
-
                     b.Navigation("Card");
 
                     b.Navigation("Format");
-
-                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("MtgBans.Data.Entities.ExpansionLegality", b =>

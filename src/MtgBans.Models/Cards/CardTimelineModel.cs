@@ -9,6 +9,7 @@ public class CardTimelineModel : CardModel
   /// <summary>
   /// Timelines of a card's legality
   /// </summary>
+  [JsonPropertyOrder(1)]
   public IEnumerable<CardTimelineFormatModel> Timeline { get; set; }
 }
 

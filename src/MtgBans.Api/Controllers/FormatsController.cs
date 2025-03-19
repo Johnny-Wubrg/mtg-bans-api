@@ -20,7 +20,14 @@ public class FormatsController : ControllerBase
   /// </summary>
   /// <returns></returns>
   [HttpGet]
-  [Obsolete("Was created for testing purposes only.")]
   public Task<IEnumerable<FormatModel>> GetFormats(CancellationToken cancellationToken) =>
     _formatService.GetAll(cancellationToken);
+
+  /// <summary>
+  /// Get supported format by slug
+  /// </summary>
+  /// <returns></returns>
+  [HttpGet("{slug}")]
+  public Task<FormatDetailModel> GetFormat(string slug, CancellationToken cancellationToken) =>
+    _formatService.GetBySlug(slug, cancellationToken);
 }

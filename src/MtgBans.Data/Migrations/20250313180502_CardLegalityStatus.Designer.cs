@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MtgBans.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    partial class MtgBansContextModelSnapshot : ModelSnapshot
+    [Migration("20250313180502_CardLegalityStatus")]
+    partial class CardLegalityStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,9 +166,13 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("format_id");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int?>("StatusId")
                         .HasColumnType("integer")
                         .HasColumnName("status_id");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.HasKey("Id")
                         .HasName("pk_card_legality_event");
@@ -209,9 +216,9 @@ namespace MtgBans.Data.Migrations
                         .HasColumnName("type");
 
                     b.HasKey("Id")
-                        .HasName("pk_card_legality_statuses");
+                        .HasName("pk_card_legality_status");
 
-                    b.ToTable("card_legality_statuses", (string)null);
+                    b.ToTable("card_legality_status", (string)null);
                 });
 
             modelBuilder.Entity("MtgBans.Data.Entities.Classification", b =>
@@ -480,9 +487,7 @@ namespace MtgBans.Data.Migrations
                     b.HasOne("MtgBans.Data.Entities.CardLegalityStatus", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_card_legality_event_card_legality_statuses_status_id");
+                        .HasConstraintName("fk_card_legality_event_card_legality_status_status_id");
 
                     b.Navigation("Card");
 

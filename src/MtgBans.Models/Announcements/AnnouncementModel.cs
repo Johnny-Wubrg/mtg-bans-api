@@ -60,7 +60,7 @@ public class AnnouncementChangeModel
   /// Type of the legality change
   /// </summary>
   /// <example>Banned</example>
-  public CardLegalityEventType Type { get; set; }
+  public string Type { get; set; }
   
   /// <summary>
   /// List of card affected

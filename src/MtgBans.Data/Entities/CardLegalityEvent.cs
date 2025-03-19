@@ -3,16 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MtgBans.Data.Entities;
 
-public enum CardLegalityEventType
-{
-  Released,
-  Banned,
-  Restricted,
-  Unbanned,
-  Rotated,
-  Errata
-}
-
 public class CardLegalityEvent
 {
   [Key]
@@ -30,5 +20,10 @@ public class CardLegalityEvent
   
   [ForeignKey(nameof(FormatId))]
   public Format Format { get; set; }
-  public CardLegalityEventType Type { get; set; }
+  
+  [Required]
+  public int StatusId { get; set; }
+  
+  [ForeignKey(nameof(StatusId))]
+  public CardLegalityStatus Status { get; set; }
 }

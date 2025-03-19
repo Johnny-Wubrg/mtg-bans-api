@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MtgBans.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    partial class MtgBansContextModelSnapshot : ModelSnapshot
+    [Migration("20250313191912_CardLegalityStatusCleanup")]
+    partial class CardLegalityStatusCleanup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -285,14 +288,6 @@ namespace MtgBans.Data.Migrations
                     b.HasKey("ScryfallId")
                         .HasName("pk_expansions");
 
-                    b.HasIndex("Code")
-                        .IsUnique()
-                        .HasDatabaseName("ix_expansions_code");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("ix_expansions_name");
-
                     b.ToTable("expansions", (string)null);
                 });
 
@@ -360,21 +355,8 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("name");
 
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("slug");
-
                     b.HasKey("Id")
                         .HasName("pk_formats");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("ix_formats_name");
-
-                    b.HasIndex("Slug")
-                        .IsUnique()
-                        .HasDatabaseName("ix_formats_slug");
 
                     b.ToTable("formats", (string)null);
                 });

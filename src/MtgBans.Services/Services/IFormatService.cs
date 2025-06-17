@@ -53,6 +53,12 @@ public class FormatService : IFormatService
   {
     var model = new FormatDetailModel();
     FillBaseModel(format, model);
+    model.Events = format.Events.OrderBy(e => e.DateEffective).Select(e => new FormatEventModel
+    {
+      NameUpdate = e.NameUpdate,
+      DateEffective = e.DateEffective,
+      Description = e.Description
+    });
     return model;
   }
 
@@ -60,11 +66,6 @@ public class FormatService : IFormatService
   {
     model.Id = format.Id;
     model.Name = format.Name;
-    model.Events = format.Events.OrderBy(e => e.DateEffective).Select(e => new FormatEventModel
-    {
-      NameUpdate = e.NameUpdate,
-      DateEffective = e.DateEffective,
-      Description = e.Description
-    });
+    model.Slug = format.Slug;
   }
 }

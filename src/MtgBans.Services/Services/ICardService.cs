@@ -26,13 +26,23 @@ public class CardService : ICardService
 {
   private readonly IScryfallClient _scryfallClient;
   private readonly MtgBansContext _context;
+  private readonly SemaphoreSlim _pool = new (0, 10);
+  private readonly Timer _refillTimer;
 
   public CardService(IScryfallClient scryfallClient, MtgBansContext context)
   {
     _scryfallClient = scryfallClient;
     _context = context;
+    _refillTimer = new Timer(Refill, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
   }
 
+  private void Refill(object state)
+  {
+    if (_pool.CurrentCount < 10)
+    {
+      _pool.Release();
+    }
+  }
   public async Task<IEnumerable<CardModel>> ResolveCards(
     IEnumerable<string> cardNamesEnumerable,
     CancellationToken cancellationToken = default)
@@ -181,9 +191,11 @@ public class CardService : ICardService
   private async Task<Printing[]> RefreshCardPrintings(Card card, List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {
+    await _pool.WaitAsync(cancellationToken);
     var scryfallCards = await _scryfallClient.GetCardByOracleId(card.ScryfallId, cancellationToken);
 
-    return GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
+    var printings = GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
+    return printings;
   }
 
   private async Task<CardModel> ResolveCard(

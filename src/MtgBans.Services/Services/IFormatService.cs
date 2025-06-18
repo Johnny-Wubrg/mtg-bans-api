@@ -31,15 +31,17 @@ public class FormatService : IFormatService
     return formats.Select(EntityToModel);
   }
 
-  public Task<FormatDetailModel> GetById(int id, CancellationToken cancellationToken = default) => Get(f => f.Id == id, cancellationToken);
+  public Task<FormatDetailModel> GetById(int id, CancellationToken cancellationToken = default) =>
+    Get(f => f.Id == id, cancellationToken);
 
-  public Task<FormatDetailModel> GetBySlug(string slug, CancellationToken cancellationToken = default) => Get(f => f.Slug == slug, cancellationToken);
+  public Task<FormatDetailModel> GetBySlug(string slug, CancellationToken cancellationToken = default) =>
+    Get(f => f.Slug == slug, cancellationToken);
 
   private async Task<FormatDetailModel> Get(Expression<Func<Format, bool>> expression,
     CancellationToken cancellationToken)
   {
     var format = await _context.Formats.Include(f => f.Events).FirstOrDefaultAsync(expression, cancellationToken);
-    return EntityToDetailModel(format);
+    return format is not null ? EntityToDetailModel(format) : null;
   }
 
   public static FormatModel EntityToModel(Format format)

@@ -100,24 +100,29 @@ public class CardService : ICardService
       .Select(format => new FormatBansModel
       {
         Format = GetFormatName(format, date),
-        Limitations = cards
-          .Select(c => new
-          {
-            Card = c,
-            LastEvent = c.LegalityEvents.Where(l => l.FormatId == format.Id && l.DateEffective <= date)
-              .MaxBy(e => e.DateEffective)
-          })
-          .Where(e => e.LastEvent is not null && e.LastEvent.Status.Type == CardLegalityStatusType.Limitation)
-          .OrderBy(c => c.LastEvent.Status.DisplayOrder)
-          .GroupBy(c => c.LastEvent.Status.Label)
-          .Select(g => new FormatBansStatusModel
-          {
-            Status = g.Key,
-            Cards = g
-              .OrderBy(c => c.Card.SortName)
-              .Select(c => EntityToModel(c.Card))
-              .ToList(),
-          })
+        Limitations = GetLimitations(date, cards, format.Id)
+      });
+  }
+
+  public static IEnumerable<FormatBansStatusModel> GetLimitations(DateOnly date, List<Card> cards, int formatId)
+  {
+    return cards
+      .Select(c => new
+      {
+        Card = c,
+        LastEvent = c.LegalityEvents.Where(l => l.FormatId == formatId && l.DateEffective <= date)
+          .MaxBy(e => e.DateEffective)
+      })
+      .Where(e => e.LastEvent is not null && e.LastEvent.Status.Type == CardLegalityStatusType.Limitation)
+      .OrderBy(c => c.LastEvent.Status.DisplayOrder)
+      .GroupBy(c => c.LastEvent.Status.Label)
+      .Select(g => new FormatBansStatusModel
+      {
+        Status = g.Key,
+        Cards = g
+          .OrderBy(c => c.Card.SortName)
+          .Select(c => EntityToModel(c.Card))
+          .ToList(),
       });
   }
 

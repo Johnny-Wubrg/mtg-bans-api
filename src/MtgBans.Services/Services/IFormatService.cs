@@ -48,6 +48,7 @@ public class FormatService : IFormatService
     var cards = await _context.Cards
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
       .Include(c => c.Classifications)
+      .AsSplitQuery()
       .Where(c => c.LegalityEvents.Any(e => e.FormatId == format.Id))
       .ToListAsync(cancellationToken);
     var formatDetail = EntityToDetailModel(format);

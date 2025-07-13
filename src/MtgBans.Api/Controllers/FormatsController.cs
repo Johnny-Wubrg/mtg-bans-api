@@ -28,6 +28,10 @@ public class FormatsController : ControllerBase
   /// </summary>
   /// <returns></returns>
   [HttpGet("{slug}")]
-  public Task<FormatDetailModel> GetFormat(string slug, CancellationToken cancellationToken) =>
-    _formatService.GetBySlug(slug, cancellationToken);
+  public async Task<IActionResult> GetFormat(string slug, CancellationToken cancellationToken)
+  {
+    var format = await _formatService.GetBySlug(slug, cancellationToken);
+    if (format is null) return NotFound();
+    return Ok(format);
+  }
 }

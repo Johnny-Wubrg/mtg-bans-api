@@ -13,11 +13,14 @@ public class CardLegalityStatus
 {
   [Key]
   public int Id { get; set; }
-  
+
   [Required, MaxLength(30)]
   public string Label { get; set; }
-  
+
+  [Required, MaxLength(16)]
+  public string Color { get; set; }
+
   public CardLegalityStatusType Type { get; set; }
-  
+
   public int DisplayOrder { get; set; }
 }

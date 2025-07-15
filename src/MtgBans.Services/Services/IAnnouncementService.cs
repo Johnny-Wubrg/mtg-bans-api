@@ -27,6 +27,7 @@ public class AnnouncementService : IAnnouncementService
   public async Task<IEnumerable<AnnouncementModel>> GetAll(CancellationToken cancellationToken = default)
   {
     var announcements = await _context.Announcements.AsNoTracking()
+      .Include(a => a.Sources)
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classifications)
       .Include(a => a.Changes).ThenInclude(e => e.Format)
       .Include(a => a.Changes).ThenInclude(e => e.Status)
@@ -43,10 +44,23 @@ public class AnnouncementService : IAnnouncementService
 
   public async Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default)
   {
+    var existingSources = await _context.Publications
+      .Where(s => model.Sources.Any(u => s.Uri == u))
+      .ToListAsync(cancellationToken);
+
+    var newSources = model.Sources
+      .Where(u => existingSources.All(s => s.Uri != u))
+      .Select(u => new Publication
+      {
+        DatePublished = model.DateAnnounced,
+        Title = model.Summary,
+        Uri = u,
+      });
+
     var announcement = new Announcement
     {
       Summary = model.Summary,
-      Sources = model.Sources,
+      Sources = existingSources.Concat(newSources).ToArray(),
       DateAnnounced = model.DateAnnounced,
       DateEffective = model.DateEffective,
       Changes = new List<CardLegalityEvent>()
@@ -95,7 +109,7 @@ public class AnnouncementService : IAnnouncementService
       DateAnnounced = announcement.DateAnnounced,
       DateEffective = announcement.DateEffective,
       Summary = announcement.Summary,
-      Sources = announcement.Sources,
+      Sources = announcement.Sources.Select(s => s.Uri).ToArray(),
       Changesets = announcement.Changes.GroupBy(e => e.FormatId).Select(f => new AnnouncementFormatModel
       {
         Format = f.First().Format.Name,

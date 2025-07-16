@@ -1,6 +1,6 @@
 namespace MtgBans.Models.Formats;
 
-public class FormatEventModel
+public class FormatEventDetail
 {
   public string NameUpdate { get; set; }
   public DateOnly DateEffective { get; set; }

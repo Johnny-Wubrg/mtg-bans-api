@@ -14,12 +14,12 @@ namespace MtgBans.Services.Services;
 
 public interface ICardService
 {
-  Task<IEnumerable<CardModel>> ResolveCards(IEnumerable<string> cardNames,
+  Task<IEnumerable<CardDetail>> ResolveCards(IEnumerable<string> cardNames,
     CancellationToken cancellationToken = default);
 
   Task RefreshExpansions(CancellationToken cancellationToken = default);
-  Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken);
-  Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken);
+  Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken);
+  Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
 }
 
 public class CardService : ICardService
@@ -44,7 +44,7 @@ public class CardService : ICardService
     }
   }
 
-  public async Task<IEnumerable<CardModel>> ResolveCards(
+  public async Task<IEnumerable<CardDetail>> ResolveCards(
     IEnumerable<string> cardNamesEnumerable,
     CancellationToken cancellationToken = default)
   {
@@ -82,7 +82,7 @@ public class CardService : ICardService
     await _context.SaveChangesAsync(cancellationToken);
   }
 
-  public async Task<IEnumerable<FormatBansModel>> GetBans(DateOnly date, CancellationToken cancellationToken)
+  public async Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken)
   {
     var cards = await _context.Cards
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
@@ -98,14 +98,14 @@ public class CardService : ICardService
     return formats
       .Where(f => f.Events.Any(e => e.DateEffective <= date))
       .OrderBy(f => f.DisplayOrder)
-      .Select(format => new FormatBansModel
+      .Select(format => new FormatBansDetail
       {
         Format = GetFormatName(format, date),
         Limitations = GetLimitations(date, cards, format.Id)
       });
   }
 
-  public static IEnumerable<FormatBansStatusModel> GetLimitations(DateOnly date, List<Card> cards, int formatId)
+  public static IEnumerable<FormatBansStatusDetail> GetLimitations(DateOnly date, List<Card> cards, int formatId)
   {
     return cards
       .Select(c => new
@@ -117,7 +117,7 @@ public class CardService : ICardService
       .Where(e => e.LastEvent is not null && e.LastEvent.Status.Type == CardLegalityStatusType.Limitation)
       .OrderBy(c => c.LastEvent.Status.DisplayOrder)
       .GroupBy(c => (Label: c.LastEvent.Status.Label, Color: c.LastEvent.Status.Color))
-      .Select(g => new FormatBansStatusModel
+      .Select(g => new FormatBansStatusDetail
       {
         Status = g.Key.Label,
         Color = g.Key.Color,
@@ -144,7 +144,7 @@ public class CardService : ICardService
     return canonical;
   }
 
-  public async Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken)
+  public async Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken)
   {
     var cards = await _context.Cards
       .Include(e => e.LegalityEvents).ThenInclude(l => l.Format)
@@ -153,7 +153,7 @@ public class CardService : ICardService
       .AsNoTracking()
       .ToListAsync(cancellationToken);
 
-    return cards.Select(c => new CardTimelineModel
+    return cards.Select(c => new CardTimelineDetail
     {
       ScryfallId = c.ScryfallId,
       Name = c.Name,
@@ -163,7 +163,7 @@ public class CardService : ICardService
         .Where(e => e.FormatId.HasValue)
         .OrderBy(e => e.Format.DisplayOrder)
         .GroupBy(e => e.FormatId).Select(g =>
-          new CardTimelineFormatModel
+          new CardTimelineFormatDetail
           {
             Format = g.First().Format.Name,
             Changes = g
@@ -172,9 +172,9 @@ public class CardService : ICardService
               {
                 var end = g.Skip(index + 1).FirstOrDefault();
 
-                return new CardTimeframeModel
+                return new CardTimeframeDetail
                 {
-                  Start = new CardTimeframeEventModel
+                  Start = new CardTimeframeEventDetail
                   {
                     Status = start.Status.Label,
                     StatusType = start.Status.Type,
@@ -182,7 +182,7 @@ public class CardService : ICardService
                   },
                   End = end is null
                     ? null
-                    : new CardTimeframeEventModel
+                    : new CardTimeframeEventDetail
                     {
                       Status = end.Status.Label,
                       StatusType = end.Status.Type,
@@ -205,7 +205,7 @@ public class CardService : ICardService
     return printings;
   }
 
-  private async Task<CardModel> ResolveCard(
+  private async Task<CardDetail> ResolveCard(
     string cardName,
     List<Card> existingCards,
     List<Guid> existingSets,
@@ -298,11 +298,11 @@ public class CardService : ICardService
       }).ToArray();
   }
 
-  public static CardModel EntityToModel(Card entity) => EntityToModel(entity, DateOnly.FromDateTime(DateTime.Now));
+  public static CardDetail EntityToModel(Card entity) => EntityToModel(entity, DateOnly.FromDateTime(DateTime.Now));
 
-  public static CardModel EntityToModel(Card entity, DateOnly date)
+  public static CardDetail EntityToModel(Card entity, DateOnly date)
   {
-    return new CardModel
+    return new CardDetail
     {
       ScryfallId = entity.ScryfallId,
       Name = entity.Name,
@@ -313,7 +313,7 @@ public class CardService : ICardService
     };
   }
 
-  private static ClassificationModel MapClassification(Card entity, DateOnly date)
+  private static ClassificationDetail MapClassification(Card entity, DateOnly date)
   {
     var classification = entity.Classifications?
       .Where(e => date >= e.DateApplied && (e.DateLifted is null || date < e.DateLifted))
@@ -321,7 +321,7 @@ public class CardService : ICardService
 
     return classification is null
       ? null
-      : new ClassificationModel
+      : new ClassificationDetail
       {
         DisplayOrder = classification.DisplayOrder,
         Summary = classification.Summary

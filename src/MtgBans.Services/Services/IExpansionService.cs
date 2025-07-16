@@ -11,10 +11,10 @@ namespace MtgBans.Services.Services;
 
 public interface IExpansionService
 {
-  public Task<IEnumerable<ExpansionModel>> RefreshExpansions(CancellationToken cancellationToken = default);
-  Task<IEnumerable<ExpansionModel>> GetAll(CancellationToken cancellationToken = default);
+  public Task<IEnumerable<ExpansionDetail>> RefreshExpansions(CancellationToken cancellationToken = default);
+  Task<IEnumerable<ExpansionDetail>> GetAll(CancellationToken cancellationToken = default);
 
-  Task<IEnumerable<ExpansionModel>> GetLegal(
+  Task<IEnumerable<ExpansionDetail>> GetLegal(
     int formatId,
     DateOnly date,
     CancellationToken cancellationToken = default);
@@ -31,7 +31,7 @@ public class ExpansionService : IExpansionService
     _context = context;
   }
 
-  public async Task<IEnumerable<ExpansionModel>> RefreshExpansions(CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<ExpansionDetail>> RefreshExpansions(CancellationToken cancellationToken = default)
   {
     var scryfallSets = await _scryfallClient.GetSets(cancellationToken);
     var formats = await _context.Formats.ToListAsync(cancellationToken: cancellationToken);
@@ -73,7 +73,7 @@ public class ExpansionService : IExpansionService
     return legalities.ToList();
   }
 
-  public async Task<IEnumerable<ExpansionModel>> GetAll(CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<ExpansionDetail>> GetAll(CancellationToken cancellationToken = default)
   {
     var expansions = await _context.Expansions
       .OrderBy(e => e.DateReleased)
@@ -81,7 +81,7 @@ public class ExpansionService : IExpansionService
     return expansions.Select(EntityToModel);
   }
 
-  public async Task<IEnumerable<ExpansionModel>> GetLegal(
+  public async Task<IEnumerable<ExpansionDetail>> GetLegal(
     int formatId,
     DateOnly date,
     CancellationToken cancellationToken = default)
@@ -97,9 +97,9 @@ public class ExpansionService : IExpansionService
     return expansions.Select(EntityToModel);
   }
 
-  private static ExpansionModel EntityToModel(Expansion expansion)
+  private static ExpansionDetail EntityToModel(Expansion expansion)
   {
-    return new ExpansionModel
+    return new ExpansionDetail
     {
       ScryfallId = expansion.ScryfallId,
       Name = expansion.Name,

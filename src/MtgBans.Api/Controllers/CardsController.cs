@@ -25,7 +25,7 @@ public class CardsController : ControllerBase
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpGet("bans")]
-  public Task<IEnumerable<FormatBansModel>> GetBans(DateOnly? date = null,
+  public Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly? date = null,
     CancellationToken cancellationToken = default) => _cardService.GetBans(date.GetValueOrNow(), cancellationToken);
 
   /// <summary>
@@ -34,7 +34,7 @@ public class CardsController : ControllerBase
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpGet("timelines")]
-  public Task<IEnumerable<CardTimelineModel>> GetTimelines(CancellationToken cancellationToken = default) =>
+  public Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken = default) =>
     _cardService.GetTimelines(cancellationToken);
 
   /// <summary>
@@ -46,7 +46,7 @@ public class CardsController : ControllerBase
   [HttpPost]
   [ApiKeyAuthentication]
   [Obsolete("Was created for testing purposes only.")]
-  public Task<IEnumerable<CardModel>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) =>
+  public Task<IEnumerable<CardDetail>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) =>
     _cardService.ResolveCards(cardNames, cancellationToken);
 
   /// <summary>

@@ -2,7 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace MtgBans.Models.Cards;
 
-public class CardModel
+/// <summary>
+/// Information about a card
+/// </summary>
+public class CardDetail
 {
   /// <summary>
   /// Oracle ID of card on Scryfall
@@ -32,26 +35,11 @@ public class CardModel
   /// Classification for groups of cards that were banned
   /// </summary>
   /// <example>Banned for ante</example>
-  public ClassificationModel Classification { get; set; }
+  public ClassificationDetail Classification { get; set; }
   
   /// <summary>
   /// Known aliases for a card
   /// </summary>
   [JsonIgnore]
   public string[] Aliases { get; set; }
-}
-
-public class ClassificationModel
-{
-  
-  /// <summary>
-  /// Id of the classification for sorting purposes
-  /// </summary>
-  public int DisplayOrder { get; set; }
-  
-  /// <summary>
-  /// Summary of the classification
-  /// </summary>
-  /// <example>Banned for ante</example>
-  public string Summary { get; set; }
 }

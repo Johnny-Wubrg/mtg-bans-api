@@ -20,7 +20,7 @@ public class FormatsController : ControllerBase
   /// </summary>
   /// <returns></returns>
   [HttpGet]
-  public Task<IEnumerable<FormatModel>> GetFormats(CancellationToken cancellationToken) =>
+  public Task<IEnumerable<FormatSummary>> GetFormats(CancellationToken cancellationToken) =>
     _formatService.GetAll(cancellationToken);
 
   /// <summary>

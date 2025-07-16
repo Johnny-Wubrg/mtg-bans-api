@@ -9,8 +9,8 @@ namespace MtgBans.Services.Services;
 
 public interface IAnnouncementService
 {
-  Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default);
-  Task<IEnumerable<AnnouncementModel>> GetAll(CancellationToken cancellationToken = default);
+  Task Publish(AnnouncementPublishRequest request, CancellationToken cancellationToken = default);
+  Task<IEnumerable<AnnouncementDetail>> GetAll(CancellationToken cancellationToken = default);
 }
 
 public class AnnouncementService : IAnnouncementService
@@ -24,7 +24,7 @@ public class AnnouncementService : IAnnouncementService
     _context = context;
   }
 
-  public async Task<IEnumerable<AnnouncementModel>> GetAll(CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<AnnouncementDetail>> GetAll(CancellationToken cancellationToken = default)
   {
     var announcements = await _context.Announcements.AsNoTracking()
       .Include(a => a.Sources)
@@ -42,37 +42,37 @@ public class AnnouncementService : IAnnouncementService
     return announcements.Select(EntityToModel);
   }
 
-  public async Task Publish(PublishAnnouncementModel model, CancellationToken cancellationToken = default)
+  public async Task Publish(AnnouncementPublishRequest request, CancellationToken cancellationToken = default)
   {
     var existingSources = await _context.Publications
-      .Where(s => model.Sources.Any(u => s.Uri == u))
+      .Where(s => request.Sources.Any(u => s.Uri == u))
       .ToListAsync(cancellationToken);
 
-    var newSources = model.Sources
+    var newSources = request.Sources
       .Where(u => existingSources.All(s => s.Uri != u))
       .Select(u => new Publication
       {
-        DatePublished = model.DateAnnounced,
-        Title = model.Summary,
+        DatePublished = request.DateAnnounced,
+        Title = request.Summary,
         Uri = u,
       });
 
     var announcement = new Announcement
     {
-      Summary = model.Summary,
+      Summary = request.Summary,
       Sources = existingSources.Concat(newSources).ToArray(),
-      DateAnnounced = model.DateAnnounced,
-      DateEffective = model.DateEffective,
+      DateAnnounced = request.DateAnnounced,
+      DateEffective = request.DateEffective,
       Changes = new List<CardLegalityEvent>()
     };
 
-    var cardNames = model.Changes.SelectMany(e => e.Cards).Distinct();
+    var cardNames = request.Changes.SelectMany(e => e.Cards).Distinct();
     var cards = await _cardService.ResolveCards(cardNames, cancellationToken);
-    var cardModels = cards as CardModel[] ?? cards.ToArray();
+    var cardModels = cards as CardDetail[] ?? cards.ToArray();
     var formats = await _context.Formats.ToListAsync(cancellationToken: cancellationToken);
     var statuses = await _context.CardLegalityStatuses.ToListAsync(cancellationToken: cancellationToken);
 
-    foreach (var change in model.Changes)
+    foreach (var change in request.Changes)
     {
       var format = formats.SingleOrDefault(e => e.Name == change.Format);
       if (format is null) throw new InvalidEntryOperation(nameof(change.Format), change.Format);
@@ -89,7 +89,7 @@ public class AnnouncementService : IAnnouncementService
             string.Equals(e.Name, card, StringComparison.InvariantCultureIgnoreCase) ||
             e.Aliases.Contains(card, StringComparer.InvariantCultureIgnoreCase)
           ).ScryfallId,
-          DateEffective = model.DateEffective,
+          DateEffective = request.DateEffective,
           StatusId = status.Id
         };
 
@@ -101,22 +101,27 @@ public class AnnouncementService : IAnnouncementService
     await _context.SaveChangesAsync(cancellationToken);
   }
 
-  public static AnnouncementModel EntityToModel(Announcement announcement)
+  public static AnnouncementDetail EntityToModel(Announcement announcement)
   {
-    return new AnnouncementModel
+    return new AnnouncementDetail
     {
       Id = announcement.Id,
       DateAnnounced = announcement.DateAnnounced,
       DateEffective = announcement.DateEffective,
       Summary = announcement.Summary,
-      Sources = announcement.Sources.Select(s => s.Uri).ToArray(),
-      Changesets = announcement.Changes.GroupBy(e => e.FormatId).Select(f => new AnnouncementFormatModel
+      Sources = announcement.Sources.Select(s => new PublicationDetail
+      {
+        Title = s.Title,
+        DatePublished = s.DatePublished,
+        Uri = s.Uri
+      }),
+      Changesets = announcement.Changes.GroupBy(e => e.FormatId).Select(f => new AnnouncementFormatDetail
       {
         Format = f.First().Format.Name,
         Changes = f
           .OrderBy(g => g.Status.DisplayOrder)
           .GroupBy(g => g.Status.Label)
-          .Select(t => new AnnouncementChangeModel
+          .Select(t => new AnnouncementChangeDetail
           {
             Type = t.Key,
             Cards = t.OrderBy(e => e.Card.SortName)

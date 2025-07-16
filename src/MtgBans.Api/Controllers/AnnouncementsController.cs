@@ -23,21 +23,21 @@ public class AnnouncementsController : ControllerBase
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpGet]
-  public Task<IEnumerable<AnnouncementModel>> Get(CancellationToken cancellationToken) =>
+  public Task<IEnumerable<AnnouncementDetail>> Get(CancellationToken cancellationToken) =>
     _announcementService.GetAll(cancellationToken);
 
   /// <summary>
   /// Publish a new announcement
   /// </summary>
-  /// <param name="model"></param>
+  /// <param name="request"></param>
   [HttpPost]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
   [ApiKeyAuthentication]
-  public async Task<IActionResult> Publish(PublishAnnouncementModel model, CancellationToken cancellationToken)
+  public async Task<IActionResult> Publish(AnnouncementPublishRequest request, CancellationToken cancellationToken)
   {
     try
     {
-      await _announcementService.Publish(model, cancellationToken);
+      await _announcementService.Publish(request, cancellationToken);
       return Created();
     }
     catch (InvalidEntryOperation ex)

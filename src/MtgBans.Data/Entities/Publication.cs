@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace MtgBans.Data.Entities;
 
@@ -15,4 +16,9 @@ public class Publication
   public Uri Uri { get; set; }
   
   public ICollection<Announcement> Announcements { get; set; }
+  
+  [DefaultValue(true)]
+  public bool Active { get; set; }
+
+  public PublicationArchive Archive { get; set; }
 }

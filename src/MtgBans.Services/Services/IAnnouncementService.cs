@@ -29,6 +29,7 @@ public class AnnouncementService : IAnnouncementService
     var announcements = await _context.Announcements.AsNoTracking()
       .Include(a => a.Sources)
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classifications)
+      .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.CanonicalPrinting)
       .Include(a => a.Changes).ThenInclude(e => e.Format)
       .Include(a => a.Changes).ThenInclude(e => e.Status)
       .OrderBy(a => a.DateEffective)

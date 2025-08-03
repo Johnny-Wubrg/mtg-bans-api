@@ -51,6 +51,7 @@ public class CardService : ICardService
     var cardNames = cardNamesEnumerable.ToArray();
 
     var existingCards = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
       .Include(c => c.Aliases)
       .Include(c => c.Classifications)
       .AsNoTracking()
@@ -74,17 +75,36 @@ public class CardService : ICardService
     var existingSets =
       await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
     var refreshTasks = existingCards.Select(c => RefreshCardPrintings(c, existingSets, cancellationToken));
-
+    
     var taskResults = await Task.WhenAll(refreshTasks);
     var printsToAdd = taskResults.SelectMany(e => e);
-
+    
     await _context.AddRangeAsync(printsToAdd, cancellationToken);
+    await _context.SaveChangesAsync(cancellationToken);
+
+    await RefreshCanonicalPrintings(cancellationToken);
+  }
+
+  private async Task RefreshCanonicalPrintings(CancellationToken cancellationToken)
+  {
+    var cardsToUpdate = await _context.Cards
+      .Include(e => e.Printings)
+      .ThenInclude(printing => printing.Expansion)
+      .Where(e => e.CanonicalId == null && e.Printings.Any())
+      .ToArrayAsync(cancellationToken);
+
+    foreach (var card in cardsToUpdate)
+    {
+      card.CanonicalId = card.Printings.MaxBy(e => e.Expansion.DateReleased).ScryfallId;
+    }
+
     await _context.SaveChangesAsync(cancellationToken);
   }
 
   public async Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken)
   {
     var cards = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
       .Include(c => c.Classifications)
       .AsNoTracking()
@@ -147,6 +167,7 @@ public class CardService : ICardService
   public async Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken)
   {
     var cards = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
       .Include(e => e.LegalityEvents).ThenInclude(l => l.Format)
       .Include(e => e.LegalityEvents).ThenInclude(l => l.Status)
       .Include(c => c.Classifications)
@@ -157,8 +178,8 @@ public class CardService : ICardService
     {
       ScryfallId = c.ScryfallId,
       Name = c.Name,
-      ScryfallUri = c.ScryfallUri,
-      ScryfallImageUri = c.ScryfallImageUri,
+      ScryfallUri = c.CanonicalPrinting.ScryfallUri,
+      ScryfallImageUri = c.CanonicalPrinting.ScryfallImageUri,
       Timeline = c.LegalityEvents
         .Where(e => e.FormatId.HasValue)
         .OrderBy(e => e.Format.DisplayOrder)
@@ -202,6 +223,7 @@ public class CardService : ICardService
     var scryfallCards = await _scryfallClient.GetCardByOracleId(card.ScryfallId, cancellationToken);
 
     var printings = GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
+
     return printings;
   }
 
@@ -224,7 +246,6 @@ public class CardService : ICardService
         .ToArray();
 
       var firstPrinting = scryfallCardsData.First();
-      var lastPrinting = scryfallCardsData.Last();
       var oracleId = firstPrinting.OracleId;
 
       var aliased = existingCards.FirstOrDefault(c => c.ScryfallId == oracleId);
@@ -245,10 +266,7 @@ public class CardService : ICardService
         ScryfallId = oracleId,
         Name = firstPrinting.Name,
         SortName = rgx.Replace(firstPrinting.Name.ToLower(), string.Empty),
-        ScryfallUri = lastPrinting.ScryfallUri,
-        ScryfallImageUri = lastPrinting.CardFaces is not null
-          ? lastPrinting.CardFaces[0].ImageUris.Png
-          : lastPrinting.ImageUris.Png,
+        CanonicalId = scryfallCardsData.Last().Id,
         Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
         Aliases = [],
         LegalityEvents = new List<CardLegalityEvent>
@@ -294,7 +312,11 @@ public class CardService : ICardService
       {
         ScryfallId = e.Id,
         CardScryfallId = cardScryfallId,
-        ExpansionScryfallId = e.SetId
+        ExpansionScryfallId = e.SetId,
+        ScryfallUri = e.ScryfallUri,
+        ScryfallImageUri = e.CardFaces?[0]?.ImageUris is not null
+          ? e.CardFaces[0].ImageUris.Png
+          : e.ImageUris?.Png,
       }).ToArray();
   }
 
@@ -306,8 +328,8 @@ public class CardService : ICardService
     {
       ScryfallId = entity.ScryfallId,
       Name = entity.Name,
-      ScryfallUri = entity.ScryfallUri,
-      ScryfallImageUri = entity.ScryfallImageUri,
+      ScryfallUri = entity.CanonicalPrinting.ScryfallUri,
+      ScryfallImageUri = entity.CanonicalPrinting.ScryfallImageUri,
       Classification = MapClassification(entity, date),
       Aliases = entity.Aliases?.Select(e => e.Name).ToArray() ?? [],
     };

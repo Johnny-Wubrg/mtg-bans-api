@@ -46,6 +46,7 @@ public class FormatService : IFormatService
     if (format is null) return null;
 
     var cards = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
       .Include(c => c.Classifications)
       .AsSplitQuery()

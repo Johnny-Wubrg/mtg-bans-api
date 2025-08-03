@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MtgBans.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    partial class MtgBansContextModelSnapshot : ModelSnapshot
+    [Migration("20250715140112_Publications")]
+    partial class Publications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,15 +98,23 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("scryfall_id");
 
-                    b.Property<Guid?>("CanonicalId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("canonical_id");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("name");
+
+                    b.Property<string>("ScryfallImageUri")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("scryfall_image_uri");
+
+                    b.Property<string>("ScryfallUri")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("scryfall_uri");
 
                     b.Property<string>("SortName")
                         .IsRequired()
@@ -113,9 +124,6 @@ namespace MtgBans.Data.Migrations
 
                     b.HasKey("ScryfallId")
                         .HasName("pk_cards");
-
-                    b.HasIndex("CanonicalId")
-                        .HasDatabaseName("ix_cards_canonical_id");
 
                     b.ToTable("cards", (string)null);
                 });
@@ -454,18 +462,6 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("expansion_scryfall_id");
 
-                    b.Property<string>("ScryfallImageUri")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("scryfall_image_uri");
-
-                    b.Property<string>("ScryfallUri")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("scryfall_uri");
-
                     b.HasKey("ScryfallId")
                         .HasName("pk_printings");
 
@@ -487,10 +483,6 @@ namespace MtgBans.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Active")
-                        .HasColumnType("boolean")
-                        .HasColumnName("active");
-
                     b.Property<DateOnly>("DatePublished")
                         .HasColumnType("date")
                         .HasColumnName("date_published");
@@ -508,26 +500,6 @@ namespace MtgBans.Data.Migrations
                         .HasName("pk_publications");
 
                     b.ToTable("publications", (string)null);
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.PublicationArchive", b =>
-                {
-                    b.Property<int>("PublicationId")
-                        .HasColumnType("integer")
-                        .HasColumnName("publication_id");
-
-                    b.Property<string>("ContentHtml")
-                        .HasColumnType("text")
-                        .HasColumnName("content_html");
-
-                    b.Property<string>("ContentMarkdown")
-                        .HasColumnType("text")
-                        .HasColumnName("content_markdown");
-
-                    b.HasKey("PublicationId")
-                        .HasName("pk_publication_archive");
-
-                    b.ToTable("publication_archive", (string)null);
                 });
 
             modelBuilder.Entity("AnnouncementPublication", b =>
@@ -562,17 +534,6 @@ namespace MtgBans.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_card_classification_classification_classifications_id");
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.Card", b =>
-                {
-                    b.HasOne("MtgBans.Data.Entities.Printing", "CanonicalPrinting")
-                        .WithMany()
-                        .HasForeignKey("CanonicalId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cards_printings_canonical_id");
-
-                    b.Navigation("CanonicalPrinting");
                 });
 
             modelBuilder.Entity("MtgBans.Data.Entities.CardAlias", b =>
@@ -673,18 +634,6 @@ namespace MtgBans.Data.Migrations
                     b.Navigation("Expansion");
                 });
 
-            modelBuilder.Entity("MtgBans.Data.Entities.PublicationArchive", b =>
-                {
-                    b.HasOne("MtgBans.Data.Entities.Publication", "Publication")
-                        .WithOne("Archive")
-                        .HasForeignKey("MtgBans.Data.Entities.PublicationArchive", "PublicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_publication_archive_publications_publication_id");
-
-                    b.Navigation("Publication");
-                });
-
             modelBuilder.Entity("MtgBans.Data.Entities.Announcement", b =>
                 {
                     b.Navigation("Changes");
@@ -709,11 +658,6 @@ namespace MtgBans.Data.Migrations
             modelBuilder.Entity("MtgBans.Data.Entities.Format", b =>
                 {
                     b.Navigation("Events");
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.Publication", b =>
-                {
-                    b.Navigation("Archive");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,6 +1,6 @@
 namespace MtgBans.Models.Formats;
 
-public class FormatModel
+public class FormatSummary
 {
   public int Id { get; set; }
   

@@ -1,6 +1,6 @@
 namespace MtgBans.Models.Expansions;
 
-public class ExpansionModel
+public class ExpansionDetail
 {
   public Guid ScryfallId { get; set; }
 

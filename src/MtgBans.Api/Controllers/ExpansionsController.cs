@@ -27,7 +27,7 @@ public class ExpansionsController
   /// <returns></returns>
   [HttpGet]
   [Obsolete("Was created for testing purposes only.")]
-  public Task<IEnumerable<ExpansionModel>> GetAll(int? format = null, DateOnly? date = null,
+  public Task<IEnumerable<ExpansionDetail>> GetAll(int? format = null, DateOnly? date = null,
     CancellationToken cancellationToken = default)
   {
     if (date.HasValue && !format.HasValue) throw new BadHttpRequestException("Date only supported for format filter.");
@@ -42,6 +42,6 @@ public class ExpansionsController
   /// <returns></returns>
   [HttpPost]
   [ApiKeyAuthentication]
-  public Task<IEnumerable<ExpansionModel>> RefreshSets(CancellationToken cancellationToken) =>
+  public Task<IEnumerable<ExpansionDetail>> RefreshSets(CancellationToken cancellationToken) =>
     _expansionService.RefreshExpansions(cancellationToken);
 }

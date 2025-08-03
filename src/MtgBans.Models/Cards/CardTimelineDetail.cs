@@ -4,16 +4,19 @@ using MtgBans.Data.Entities;
 namespace MtgBans.Models.Cards;
 
 /// <inheritdoc />
-public class CardTimelineModel : CardModel
+public class CardTimelineDetail : CardDetail
 {
   /// <summary>
   /// Timelines of a card's legality
   /// </summary>
   [JsonPropertyOrder(1)]
-  public IEnumerable<CardTimelineFormatModel> Timeline { get; set; }
+  public IEnumerable<CardTimelineFormatDetail> Timeline { get; set; }
 }
 
-public class CardTimelineFormatModel
+/// <summary>
+/// Information about a card's ban history within a format
+/// </summary>
+public class CardTimelineFormatDetail
 {
   /// <summary>
   /// Name of the format
@@ -21,25 +24,31 @@ public class CardTimelineFormatModel
   /// <example>Legacy</example>
   public string Format { get; set; }
   
-  public IEnumerable<CardTimeframeModel> Changes { get; set; }
+  public IEnumerable<CardTimeframeDetail> Changes { get; set; }
 }
 
-public class CardTimeframeModel
+/// <summary>
+/// Timespan of a card's ban status
+/// </summary>
+public class CardTimeframeDetail
 {
   /// <summary>
   /// The card's status at the start of this timeframe
   /// </summary>
   /// <example>{ "status": "Banned", date: "1995-01-01" }</example>
-  public CardTimeframeEventModel Start { get; set; }
+  public CardTimeframeEventDetail Start { get; set; }
 
   /// <summary>
   /// The card's status at the end of this timeframe
   /// </summary>
   /// <example>{ "status": "Unbanned", date: "1997-01-01" }</example>
-  public CardTimeframeEventModel End { get; set; }
+  public CardTimeframeEventDetail End { get; set; }
 }
 
-public class CardTimeframeEventModel
+/// <summary>
+/// Snapshot of a card's banning event
+/// </summary>
+public class CardTimeframeEventDetail
 {
   /// <summary>
   /// The status of the card

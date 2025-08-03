@@ -9,9 +9,9 @@ namespace MtgBans.Services.Services;
 
 public interface IFormatService
 {
-  Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken = default);
-  Task<FormatDetailModel> GetById(int id, CancellationToken cancellationToken = default);
-  Task<FormatDetailModel> GetBySlug(string slug, CancellationToken cancellationToken = default);
+  Task<IEnumerable<FormatSummary>> GetAll(CancellationToken cancellationToken = default);
+  Task<FormatDetail> GetById(int id, CancellationToken cancellationToken = default);
+  Task<FormatDetail> GetBySlug(string slug, CancellationToken cancellationToken = default);
 }
 
 public class FormatService : IFormatService
@@ -23,7 +23,7 @@ public class FormatService : IFormatService
     _context = context;
   }
 
-  public async Task<IEnumerable<FormatModel>> GetAll(CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<FormatSummary>> GetAll(CancellationToken cancellationToken = default)
   {
     var formats = await _context.Formats
       .OrderBy(f => f.DisplayOrder)
@@ -32,13 +32,13 @@ public class FormatService : IFormatService
     return formats.Select(EntityToModel);
   }
 
-  public Task<FormatDetailModel> GetById(int id, CancellationToken cancellationToken = default) =>
+  public Task<FormatDetail> GetById(int id, CancellationToken cancellationToken = default) =>
     Get(f => f.Id == id, cancellationToken);
 
-  public Task<FormatDetailModel> GetBySlug(string slug, CancellationToken cancellationToken = default) =>
+  public Task<FormatDetail> GetBySlug(string slug, CancellationToken cancellationToken = default) =>
     Get(f => f.Slug == slug, cancellationToken);
 
-  private async Task<FormatDetailModel> Get(Expression<Func<Format, bool>> expression,
+  private async Task<FormatDetail> Get(Expression<Func<Format, bool>> expression,
     CancellationToken cancellationToken)
   {
     var format = await _context.Formats.Include(f => f.Events).FirstOrDefaultAsync(expression, cancellationToken);
@@ -46,6 +46,7 @@ public class FormatService : IFormatService
     if (format is null) return null;
 
     var cards = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
       .Include(c => c.Classifications)
       .AsSplitQuery()
@@ -56,7 +57,7 @@ public class FormatService : IFormatService
     return formatDetail;
   }
 
-  private IEnumerable<FormatSnapshotModel> CreateTimeline(int formatId, List<Card> cards,
+  private IEnumerable<FormatSnapshotDetail> CreateTimeline(int formatId, List<Card> cards,
     List<CardLegalityStatus> statuses)
   {
     return cards
@@ -64,7 +65,7 @@ public class FormatService : IFormatService
       .Where(t => t.Event.FormatId == formatId)
       .GroupBy(t => t.Event.DateEffective)
       .OrderBy(g => g.Key)
-      .Select(grp => new FormatSnapshotModel
+      .Select(grp => new FormatSnapshotDetail
       {
         Date = grp.Key,
         Limitations = CardService.GetLimitations(grp.Key, cards, formatId)
@@ -72,18 +73,18 @@ public class FormatService : IFormatService
       .ToList();
   }
 
-  public static FormatModel EntityToModel(Format format)
+  public static FormatSummary EntityToModel(Format format)
   {
-    var model = new FormatModel();
+    var model = new FormatSummary();
     FillBaseModel(format, model);
     return model;
   }
 
-  public static FormatDetailModel EntityToDetailModel(Format format)
+  public static FormatDetail EntityToDetailModel(Format format)
   {
-    var model = new FormatDetailModel();
+    var model = new FormatDetail();
     FillBaseModel(format, model);
-    model.Events = format.Events.OrderBy(e => e.DateEffective).Select(e => new FormatEventModel
+    model.Events = format.Events.OrderBy(e => e.DateEffective).Select(e => new FormatEventDetail
     {
       NameUpdate = e.NameUpdate,
       DateEffective = e.DateEffective,
@@ -93,10 +94,10 @@ public class FormatService : IFormatService
     return model;
   }
 
-  private static void FillBaseModel(Format format, FormatModel model)
+  private static void FillBaseModel(Format format, FormatSummary summary)
   {
-    model.Id = format.Id;
-    model.Name = format.Name;
-    model.Slug = format.Slug;
+    summary.Id = format.Id;
+    summary.Name = format.Name;
+    summary.Slug = format.Slug;
   }
 }

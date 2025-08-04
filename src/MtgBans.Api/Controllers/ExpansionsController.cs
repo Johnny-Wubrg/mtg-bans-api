@@ -9,7 +9,7 @@ namespace MtgBans.Api.Controllers;
 
 [ApiController]
 [Route("sets")]
-public class ExpansionsController
+public class ExpansionsController : ControllerBase
 {
   private readonly IExpansionService _expansionService;
 

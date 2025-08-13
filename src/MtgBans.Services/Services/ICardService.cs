@@ -9,6 +9,7 @@ using MtgBans.Scryfall.Models;
 using MtgBans.Services.Constants;
 using MtgBans.Services.Extensions;
 using Refit;
+using ScryfallImages = MtgBans.Data.Entities.ScryfallImages;
 
 namespace MtgBans.Services.Services;
 
@@ -75,10 +76,10 @@ public class CardService : ICardService
     var existingSets =
       await _context.Expansions.AsNoTracking().Select(e => e.ScryfallId).ToListAsync(cancellationToken);
     var refreshTasks = existingCards.Select(c => RefreshCardPrintings(c, existingSets, cancellationToken));
-    
+
     var taskResults = await Task.WhenAll(refreshTasks);
     var printsToAdd = taskResults.SelectMany(e => e);
-    
+
     await _context.AddRangeAsync(printsToAdd, cancellationToken);
     await _context.SaveChangesAsync(cancellationToken);
 
@@ -179,7 +180,7 @@ public class CardService : ICardService
       ScryfallId = c.ScryfallId,
       Name = c.Name,
       ScryfallUri = c.CanonicalPrinting.ScryfallUri,
-      ScryfallImageUri = c.CanonicalPrinting.ScryfallImageUri,
+      ScryfallImageUri = c.CanonicalPrinting.ScryfallImageUris.Normal,
       Timeline = c.LegalityEvents
         .Where(e => e.FormatId.HasValue)
         .OrderBy(e => e.Format.DisplayOrder)
@@ -308,15 +309,17 @@ public class CardService : ICardService
     return scryfallCards.Data.Where(e =>
         existingSets.Contains(e.SetId) &&
         (trackedPrintings is null || trackedPrintings.All(p => p.ScryfallId != e.Id)))
-      .Select(e => new Printing
+      .Select(e =>
       {
-        ScryfallId = e.Id,
-        CardScryfallId = cardScryfallId,
-        ExpansionScryfallId = e.SetId,
-        ScryfallUri = e.ScryfallUri,
-        ScryfallImageUri = e.CardFaces?[0]?.ImageUris is not null
-          ? e.CardFaces[0].ImageUris.Png
-          : e.ImageUris?.Png,
+        var images = e.CardFaces?[0]?.ImageUris ?? e.ImageUris;
+        return new Printing
+        {
+          ScryfallId = e.Id,
+          CardScryfallId = cardScryfallId,
+          ExpansionScryfallId = e.SetId,
+          ScryfallUri = e.ScryfallUri,
+          ScryfallImageUris = new ScryfallImages(images.Small, images.Normal, images.Png),
+        };
       }).ToArray();
   }
 
@@ -329,7 +332,7 @@ public class CardService : ICardService
       ScryfallId = entity.ScryfallId,
       Name = entity.Name,
       ScryfallUri = entity.CanonicalPrinting.ScryfallUri,
-      ScryfallImageUri = entity.CanonicalPrinting.ScryfallImageUri,
+      ScryfallImageUri = entity.CanonicalPrinting.ScryfallImageUris.Normal,
       Classification = MapClassification(entity, date),
       Aliases = entity.Aliases?.Select(e => e.Name).ToArray() ?? [],
     };

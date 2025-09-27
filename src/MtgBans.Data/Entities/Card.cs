@@ -26,4 +26,6 @@ public class Card
   public ICollection<CardAlias> Aliases { get; set; }
   
   public ICollection<Classification> Classifications { get; set; }
+  
+  public CardLegalityRationale Rationale { get; set; }
 }

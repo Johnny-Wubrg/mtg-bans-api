@@ -66,7 +66,14 @@ public class CardService : ICardService
 
     await _context.SaveChangesAsync(cancellationToken);
 
-    return cards.Where(c => c is not null).ToList()!;
+    foreach (var card in cards)
+    {
+      card.CanonicalPrinting = card.Printings.LastOrDefault();
+    }
+
+    await _context.SaveChangesAsync(cancellationToken);
+
+    return cards.Where(c => c is not null).Select(EntityToModel).ToList()!;
   }
 
   public async Task RefreshExpansions(CancellationToken cancellationToken = default)
@@ -227,7 +234,7 @@ public class CardService : ICardService
     return printings;
   }
 
-  private async Task<CardDetail> ResolveCard(
+  private async Task<Card> ResolveCard(
     string cardName,
     List<Card> existingCards,
     List<Guid> existingSets,
@@ -237,7 +244,7 @@ public class CardService : ICardService
       c.Name.Equals(cardName, StringComparison.InvariantCultureIgnoreCase) ||
       c.Aliases.Any(a => string.Equals(a.Name, cardName, StringComparison.InvariantCultureIgnoreCase)));
 
-    if (existing is not null) return EntityToModel(existing);
+    if (existing is not null) return existing;
 
     try
     {
@@ -257,7 +264,7 @@ public class CardService : ICardService
           Name = cardName,
         }, cancellationToken);
 
-        return EntityToModel(aliased);
+        return aliased;
       }
 
       var rgx = new Regex("[^a-z]+");
@@ -266,7 +273,6 @@ public class CardService : ICardService
         ScryfallId = oracleId,
         Name = firstPrinting.Name,
         SortName = rgx.Replace(firstPrinting.Name.ToLower(), string.Empty),
-        CanonicalId = scryfallCardsData.Last().Id,
         Printings = GetUntrackedPrintings(oracleId, scryfallCards, existingSets),
         Aliases = [],
         LegalityEvents = new List<CardLegalityEvent>
@@ -293,7 +299,7 @@ public class CardService : ICardService
 
       await _context.Cards.AddAsync(newCard, cancellationToken);
 
-      return EntityToModel(newCard);
+      return newCard;
     }
     catch (ApiException)
     {

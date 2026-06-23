@@ -26,19 +26,19 @@ public class CardService : ICardService
 {
   private readonly IScryfallClient _scryfallClient;
   private readonly MtgBansContext _context;
-  private readonly SemaphoreSlim _pool = new(0, 10);
+  private readonly SemaphoreSlim _pool = new(0, 2);
   private readonly Timer _refillTimer;
 
   public CardService(IScryfallClient scryfallClient, MtgBansContext context)
   {
     _scryfallClient = scryfallClient;
     _context = context;
-    _refillTimer = new Timer(Refill, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
+    _refillTimer = new Timer(Refill, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(1000));
   }
 
   private void Refill(object state)
   {
-    if (_pool.CurrentCount < 10)
+    if (_pool.CurrentCount < 2)
     {
       _pool.Release();
     }
@@ -52,6 +52,7 @@ public class CardService : ICardService
 
     var existingCards = await _context.Cards
       .Include(c => c.CanonicalPrinting)
+      .Include(c => c.Printings)
       .Include(c => c.Aliases)
       .Include(c => c.Classifications)
       .AsNoTracking()

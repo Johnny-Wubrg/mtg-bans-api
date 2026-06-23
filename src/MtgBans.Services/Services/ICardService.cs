@@ -23,26 +23,32 @@ public interface ICardService
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
 }
 
-public class CardService : ICardService
+public class CardService : ICardService, IDisposable
 {
   private readonly IScryfallClient _scryfallClient;
   private readonly MtgBansContext _context;
-  private readonly SemaphoreSlim _pool = new(0, 10);
+  private readonly SemaphoreSlim _rateLimiter = new(10, 10);
   private readonly Timer _refillTimer;
 
   public CardService(IScryfallClient scryfallClient, MtgBansContext context)
   {
     _scryfallClient = scryfallClient;
     _context = context;
-    _refillTimer = new Timer(Refill, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
+    _refillTimer = new(Refill, null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100));
   }
 
   private void Refill(object state)
   {
-    if (_pool.CurrentCount < 10)
+    if (_rateLimiter.CurrentCount < 10)
     {
-      _pool.Release();
+      _rateLimiter.Release();
     }
+  }
+
+  public void Dispose()
+  {
+    _refillTimer?.Dispose();
+    _rateLimiter?.Dispose();
   }
 
   public async Task<IEnumerable<CardDetail>> ResolveCards(
@@ -227,7 +233,7 @@ public class CardService : ICardService
   private async Task<Printing[]> RefreshCardPrintings(Card card, List<Guid> existingSets,
     CancellationToken cancellationToken = default)
   {
-    await _pool.WaitAsync(cancellationToken);
+    await _rateLimiter.WaitAsync(cancellationToken);
     var scryfallCards = await _scryfallClient.GetCardByOracleId(card.ScryfallId, cancellationToken);
 
     var printings = GetUntrackedPrintings(card.ScryfallId, scryfallCards, existingSets, card.Printings);
@@ -249,6 +255,7 @@ public class CardService : ICardService
 
     try
     {
+      await _rateLimiter.WaitAsync(cancellationToken);
       var scryfallCards = await _scryfallClient.GetCardByName(cardName, cancellationToken);
       var scryfallCardsData = scryfallCards.Data.Where(e => !ExpansionConstants.IGNORED_SET_TYPES.Contains(e.SetType))
         .ToArray();

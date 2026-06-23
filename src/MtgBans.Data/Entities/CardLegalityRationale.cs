@@ -19,6 +19,8 @@ public class CardLegalityRationale
   public Card Card { get; set; }
 
   public string Text { get; set; }
+  
+  public DateTime DateUpdated { get; set; }
 
   [Required]
   public AiGenerationStatus AiStatus { get; set; } = AiGenerationStatus.None;

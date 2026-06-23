@@ -14,6 +14,8 @@ public class CardLegalityRationaleVote
   [ForeignKey(nameof(CardScryfallId))]
   public CardLegalityRationale Rationale { get; set; }
   
+  public DateTime DateApplied { get; set; }
+  
   [Required]
   public sbyte Direction { get; set; }
 

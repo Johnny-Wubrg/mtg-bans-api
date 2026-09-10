@@ -25,6 +25,7 @@ public static class ScryfallServiceExtensions
       {
         opt.BaseAddress = new Uri(configuration.GetSection("Scryfall")["ApiBaseUrl"] ?? string.Empty);
         opt.DefaultRequestHeaders.UserAgent.ParseAdd("MTG Bans API");
+        opt.DefaultRequestHeaders.Accept.ParseAdd("application/json");
       });
   }
 }

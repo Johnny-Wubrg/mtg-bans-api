@@ -42,4 +42,9 @@ public class CardDetail
   /// </summary>
   [JsonIgnore]
   public string[] Aliases { get; set; }
+
+  /// <summary>
+  /// The card's current ban status in each format
+  /// </summary>
+  public IEnumerable<CardFormatStatusDetail> FormatStatuses { get; set; }
 }

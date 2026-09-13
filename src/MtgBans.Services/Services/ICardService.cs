@@ -121,10 +121,81 @@ public class CardService : ICardService, IDisposable
     var card = await _context.Cards
       .Include(c => c.CanonicalPrinting)
       .Include(c => c.Classifications)
+      .Include(c => c.Printings).ThenInclude(p => p.Expansion).ThenInclude(e => e.Legalities)
+      .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
+      .AsSplitQuery()
       .AsNoTracking()
       .FirstOrDefaultAsync(c => c.ScryfallId == scryfallId, cancellationToken);
 
-    return card is null ? null : EntityToModel(card);
+    if (card is null) return null;
+
+    var formats = await _context.Formats.OrderBy(f => f.DisplayOrder).ToListAsync(cancellationToken);
+    var date = DateOnly.FromDateTime(DateTime.Now);
+
+    var detail = EntityToModel(card);
+    detail.FormatStatuses = formats.Select(format => GetFormatStatus(card, format, date)).ToList();
+    return detail;
+  }
+
+  private static CardFormatStatusDetail GetFormatStatus(Card card, Format format, DateOnly date)
+  {
+    var legalities = card.Printings
+      .Select(p => p.Expansion)
+      .SelectMany(e => e.Legalities.Where(l => l.FormatId == format.Id))
+      .ToList();
+
+    var wasEverLegal = legalities.Any(l => l.DateEntered <= date);
+    var isCurrentlyLegal = legalities
+      .Any(l => l.DateEntered <= date && (l.DateExited is null || l.DateExited > date));
+
+    if (!wasEverLegal)
+    {
+      return new CardFormatStatusDetail { Format = format.Name, Type = CardFormatStatusType.NotLegal };
+    }
+
+    if (!isCurrentlyLegal)
+    {
+      var rotatedDate = legalities.Where(l => l.DateEntered <= date && l.DateExited != null).Max(l => l.DateExited);
+      return new CardFormatStatusDetail
+      {
+        Format = format.Name,
+        Type = CardFormatStatusType.Rotated,
+        Date = rotatedDate
+      };
+    }
+
+    var formatEvents = card.LegalityEvents
+      .Where(e => e.FormatId == format.Id && e.DateEffective <= date)
+      .OrderBy(e => e.DateEffective)
+      .ToList();
+
+    var lastLimitation = formatEvents
+      .Select((start, index) => (Start: start, End: formatEvents.Skip(index + 1).FirstOrDefault()))
+      .Where(e => e.Start.Status.Type == CardLegalityStatusType.Limitation)
+      .LastOrDefault();
+
+    if (lastLimitation.Start is null)
+    {
+      return new CardFormatStatusDetail { Format = format.Name, Type = CardFormatStatusType.NeverBanned };
+    }
+
+    if (lastLimitation.End is null)
+    {
+      return new CardFormatStatusDetail
+      {
+        Format = format.Name,
+        Type = CardFormatStatusType.Limitation,
+        Status = lastLimitation.Start.Status.Label,
+        Color = lastLimitation.Start.Status.Color
+      };
+    }
+
+    return new CardFormatStatusDetail
+    {
+      Format = format.Name,
+      Type = CardFormatStatusType.Unbanned,
+      Date = lastLimitation.End.DateEffective
+    };
   }
 
   public async Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken)

@@ -229,8 +229,7 @@ public class CardService : ICardService, IDisposable
 
     var lastLimitation = formatEvents
       .Select((start, index) => (Start: start, End: formatEvents.Skip(index + 1).FirstOrDefault()))
-      .Where(e => e.Start.Status.Type == CardLegalityStatusType.Limitation)
-      .LastOrDefault();
+      .LastOrDefault(e => e.Start.Status.Type == CardLegalityStatusType.Limitation);
 
     if (lastLimitation.Start is null)
     {
@@ -244,7 +243,8 @@ public class CardService : ICardService, IDisposable
         Format = format.Name,
         Type = CardFormatStatusType.Limitation,
         Status = lastLimitation.Start.Status.Label,
-        Color = lastLimitation.Start.Status.Color
+        Color = lastLimitation.Start.Status.Color,
+        Date = lastLimitation.Start.DateEffective
       };
     }
 

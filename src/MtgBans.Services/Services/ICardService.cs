@@ -163,7 +163,7 @@ public class CardService : ICardService, IDisposable
     }
     catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
     {
-      return new CardSearchDetail { Results = [], HasMore = false };
+      return new() { Results = [], HasMore = false };
     }
 
     var hasMore = scryfallResults.HasMore || scryfallResults.Data.Length > SEARCH_RESULT_LIMIT;
@@ -182,7 +182,7 @@ public class CardService : ICardService, IDisposable
       var known = knownCards.GetValueOrDefault(card.OracleId);
 
       return known is not null
-        ? new CardSearchResultDetail
+        ? new()
         {
           ScryfallId = known.ScryfallId,
           Name = known.Name,
@@ -198,7 +198,7 @@ public class CardService : ICardService, IDisposable
         };
     });
 
-    return new CardSearchDetail { Results = results, HasMore = hasMore };
+    return new() { Results = results, HasMore = hasMore };
   }
 
   private static CardFormatStatusDetail GetFormatStatus(Card card, Format format, DateOnly date)
@@ -214,13 +214,13 @@ public class CardService : ICardService, IDisposable
 
     if (!wasEverLegal)
     {
-      return new CardFormatStatusDetail { Format = format.Name, Type = CardFormatStatusType.NotLegal };
+      return new() { Format = format.Name, Type = CardFormatStatusType.NotLegal };
     }
 
     if (!isCurrentlyLegal)
     {
       var rotatedDate = legalities.Where(l => l.DateEntered <= date && l.DateExited != null).Max(l => l.DateExited);
-      return new CardFormatStatusDetail
+      return new()
       {
         Format = format.Name,
         Type = CardFormatStatusType.Rotated,
@@ -239,12 +239,12 @@ public class CardService : ICardService, IDisposable
 
     if (lastLimitation.Start is null)
     {
-      return new CardFormatStatusDetail { Format = format.Name, Type = CardFormatStatusType.NeverBanned };
+      return new() { Format = format.Name, Type = CardFormatStatusType.NeverBanned };
     }
 
     if (lastLimitation.End is null)
     {
-      return new CardFormatStatusDetail
+      return new()
       {
         Format = format.Name,
         Type = CardFormatStatusType.Limitation,
@@ -254,7 +254,7 @@ public class CardService : ICardService, IDisposable
       };
     }
 
-    return new CardFormatStatusDetail
+    return new()
     {
       Format = format.Name,
       Type = CardFormatStatusType.Unbanned,
@@ -356,7 +356,7 @@ public class CardService : ICardService, IDisposable
 
                 return new CardTimeframeDetail
                 {
-                  Start = new CardTimeframeEventDetail
+                  Start = new()
                   {
                     Status = start.Status.Label,
                     StatusType = start.Status.Type,
@@ -413,7 +413,7 @@ public class CardService : ICardService, IDisposable
       var aliased = existingCards.FirstOrDefault(c => c.ScryfallId == oracleId);
       if (aliased is not null)
       {
-        await _context.CardAliases.AddAsync(new CardAlias
+        await _context.CardAliases.AddAsync(new()
         {
           CardScryfallId = aliased.ScryfallId,
           Name = cardName,
@@ -478,7 +478,7 @@ public class CardService : ICardService, IDisposable
           CardScryfallId = cardScryfallId,
           ExpansionScryfallId = e.SetId,
           ScryfallUri = e.ScryfallUri,
-          ScryfallImageUris = new ScryfallImages(images.Small, images.Normal, images.Png),
+          ScryfallImageUris = new(images.Small, images.Normal, images.Png),
         };
       }).ToArray();
   }
@@ -487,7 +487,7 @@ public class CardService : ICardService, IDisposable
 
   public static CardDetail EntityToModel(Card entity, DateOnly date)
   {
-    return new CardDetail
+    return new()
     {
       ScryfallId = entity.ScryfallId,
       Name = entity.Name,

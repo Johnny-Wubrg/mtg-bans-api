@@ -23,7 +23,7 @@ public static class ScryfallServiceExtensions
       .AddRefitClient<IScryfallClient>(settings)
       .ConfigureHttpClient(opt =>
       {
-        opt.BaseAddress = new Uri(configuration.GetSection("Scryfall")["ApiBaseUrl"] ?? string.Empty);
+        opt.BaseAddress = new(configuration.GetSection("Scryfall")["ApiBaseUrl"] ?? string.Empty);
         opt.DefaultRequestHeaders.UserAgent.ParseAdd("MTG Bans API");
         opt.DefaultRequestHeaders.Accept.ParseAdd("application/json");
       });

@@ -99,7 +99,7 @@ public class ExpansionService : IExpansionService
 
   private static ExpansionDetail EntityToModel(Expansion expansion)
   {
-    return new ExpansionDetail
+    return new()
     {
       ScryfallId = expansion.ScryfallId,
       Name = expansion.Name,

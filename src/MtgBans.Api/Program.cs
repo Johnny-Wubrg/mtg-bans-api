@@ -21,7 +21,7 @@ builder.Services.AddSwaggerGen(c =>
   c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "MtgBans.Api.xml"));
   c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "MtgBans.Models.xml"));
 
-  c.AddSecurityDefinition("ApiKeyHeader", new OpenApiSecurityScheme()
+  c.AddSecurityDefinition("ApiKeyHeader", new()
   {
     Name = "X-Api-Key",
     In = ParameterLocation.Header,
@@ -30,12 +30,12 @@ builder.Services.AddSwaggerGen(c =>
   });
 
 
-  c.AddSecurityRequirement(new OpenApiSecurityRequirement
+  c.AddSecurityRequirement(new()
   {
     {
-      new OpenApiSecurityScheme
+      new()
       {
-        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "ApiKeyHeader" }
+        Reference = new() { Type = ReferenceType.SecurityScheme, Id = "ApiKeyHeader" }
       },
       []
     }

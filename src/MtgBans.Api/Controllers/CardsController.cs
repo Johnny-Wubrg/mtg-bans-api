@@ -19,6 +19,30 @@ public class CardsController : ControllerBase
   }
 
   /// <summary>
+  /// Get card details by Scryfall oracle ID
+  /// </summary>
+  /// <param name="scryfallId"></param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet("{scryfallId:guid}")]
+  public async Task<IActionResult> GetCard(Guid scryfallId, CancellationToken cancellationToken)
+  {
+    var card = await _cardService.GetById(scryfallId, cancellationToken);
+    if (card is null) return NotFound();
+    return Ok(card);
+  }
+
+  /// <summary>
+  /// Search for cards via Scryfall, hydrated with local ban data when we track the card
+  /// </summary>
+  /// <param name="q">Scryfall search query</param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet("search")]
+  public Task<CardSearchDetail> Search(string q, CancellationToken cancellationToken) =>
+    _cardService.Search(q, cancellationToken);
+
+  /// <summary>
   /// Get banned and restricted cards by date
   /// </summary>
   /// <param name="date"></param>

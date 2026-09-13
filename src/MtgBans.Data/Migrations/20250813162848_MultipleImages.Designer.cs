@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MtgBans.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    partial class MtgBansContextModelSnapshot : ModelSnapshot
+    [Migration("20250813162848_MultipleImages")]
+    partial class MultipleImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -195,65 +198,6 @@ namespace MtgBans.Data.Migrations
                     b.ToTable("card_legality_event", (string)null);
                 });
 
-            modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityRationale", b =>
-                {
-                    b.Property<Guid>("CardScryfallId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("card_scryfall_id");
-
-                    b.Property<int>("AiStatus")
-                        .HasColumnType("integer")
-                        .HasColumnName("ai_status");
-
-                    b.Property<DateTime>("DateUpdated")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_updated");
-
-                    b.Property<string>("Text")
-                        .HasColumnType("text")
-                        .HasColumnName("text");
-
-                    b.HasKey("CardScryfallId")
-                        .HasName("pk_card_legality_rationale");
-
-                    b.ToTable("card_legality_rationale", (string)null);
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityRationaleVote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("CardScryfallId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("card_scryfall_id");
-
-                    b.Property<DateTime>("DateApplied")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_applied");
-
-                    b.Property<short>("Direction")
-                        .HasColumnType("smallint")
-                        .HasColumnName("direction");
-
-                    b.Property<string>("Message")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("message");
-
-                    b.HasKey("Id")
-                        .HasName("pk_card_legality_rationale_vote");
-
-                    b.HasIndex("CardScryfallId")
-                        .HasDatabaseName("ix_card_legality_rationale_vote_card_scryfall_id");
-
-                    b.ToTable("card_legality_rationale_vote", (string)null);
-                });
-
             modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityStatus", b =>
                 {
                     b.Property<int>("Id")
@@ -305,16 +249,6 @@ namespace MtgBans.Data.Migrations
                     b.Property<DateOnly?>("DateLifted")
                         .HasColumnType("date")
                         .HasColumnName("date_lifted");
-
-                    b.Property<string>("DefaultCardRationale")
-                        .HasColumnType("text")
-                        .HasColumnName("default_card_rationale");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("description");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("integer")
@@ -683,30 +617,6 @@ namespace MtgBans.Data.Migrations
                     b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityRationale", b =>
-                {
-                    b.HasOne("MtgBans.Data.Entities.Card", "Card")
-                        .WithOne("Rationale")
-                        .HasForeignKey("MtgBans.Data.Entities.CardLegalityRationale", "CardScryfallId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_card_legality_rationale_cards_card_scryfall_id");
-
-                    b.Navigation("Card");
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityRationaleVote", b =>
-                {
-                    b.HasOne("MtgBans.Data.Entities.CardLegalityRationale", "Rationale")
-                        .WithMany("Votes")
-                        .HasForeignKey("CardScryfallId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_card_legality_rationale_vote_card_legality_rationale_card_s");
-
-                    b.Navigation("Rationale");
-                });
-
             modelBuilder.Entity("MtgBans.Data.Entities.ExpansionLegality", b =>
                 {
                     b.HasOne("MtgBans.Data.Entities.Expansion", null)
@@ -814,13 +724,6 @@ namespace MtgBans.Data.Migrations
                     b.Navigation("LegalityEvents");
 
                     b.Navigation("Printings");
-
-                    b.Navigation("Rationale");
-                });
-
-            modelBuilder.Entity("MtgBans.Data.Entities.CardLegalityRationale", b =>
-                {
-                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("MtgBans.Data.Entities.Expansion", b =>

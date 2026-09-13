@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MtgBans.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MtgBans.Data.Migrations
 {
     [DbContext(typeof(MtgBansContext))]
-    partial class MtgBansContextModelSnapshot : ModelSnapshot
+    [Migration("20250815031426_ClassificationRationale")]
+    partial class ClassificationRationale
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -205,10 +208,6 @@ namespace MtgBans.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ai_status");
 
-                    b.Property<DateTime>("DateUpdated")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_updated");
-
                     b.Property<string>("Text")
                         .HasColumnType("text")
                         .HasColumnName("text");
@@ -231,10 +230,6 @@ namespace MtgBans.Data.Migrations
                     b.Property<Guid>("CardScryfallId")
                         .HasColumnType("uuid")
                         .HasColumnName("card_scryfall_id");
-
-                    b.Property<DateTime>("DateApplied")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_applied");
 
                     b.Property<short>("Direction")
                         .HasColumnType("smallint")

@@ -104,7 +104,7 @@ public class AnnouncementService : IAnnouncementService
 
   public static AnnouncementDetail EntityToModel(Announcement announcement)
   {
-    return new AnnouncementDetail
+    return new()
     {
       Id = announcement.Id,
       DateAnnounced = announcement.DateAnnounced,

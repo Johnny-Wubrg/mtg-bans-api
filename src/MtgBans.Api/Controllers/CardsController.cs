@@ -33,6 +33,16 @@ public class CardsController : ControllerBase
   }
 
   /// <summary>
+  /// Search for cards via Scryfall, hydrated with local ban data when we track the card
+  /// </summary>
+  /// <param name="q">Scryfall search query</param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet("search")]
+  public Task<IEnumerable<CardSearchResultDetail>> Search(string q, CancellationToken cancellationToken) =>
+    _cardService.Search(q, cancellationToken);
+
+  /// <summary>
   /// Get banned and restricted cards by date
   /// </summary>
   /// <param name="date"></param>

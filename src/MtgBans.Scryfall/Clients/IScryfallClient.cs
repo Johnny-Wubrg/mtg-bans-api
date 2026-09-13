@@ -11,6 +11,9 @@ public interface IScryfallClient
   [Get("/cards/search?q=oracleid:{oracleId}&order=released&dir=asc&unique=prints&include_extras=true")]
   Task<ScryfallDataset<ScryfallCard>> GetCardByOracleId(Guid oracleId, CancellationToken cancellationToken = default);
 
+  [Get("/cards/search?q={query}&unique=cards&order=name")]
+  Task<ScryfallDataset<ScryfallCard>> Search(string query, CancellationToken cancellationToken = default);
+
   [Get("/sets")]
   Task<ScryfallDataset<ScryfallSet>> GetSets(CancellationToken cancellationToken = default);
 }

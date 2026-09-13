@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
@@ -22,6 +23,7 @@ public interface ICardService
   Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken);
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
   Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
+  Task<IEnumerable<CardSearchResultDetail>> Search(string query, CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService, IDisposable
@@ -147,6 +149,50 @@ public class CardService : ICardService, IDisposable
       })
       .ToList();
     return detail;
+  }
+
+  public async Task<IEnumerable<CardSearchResultDetail>> Search(string query,
+    CancellationToken cancellationToken = default)
+  {
+    ScryfallDataset<ScryfallCard> scryfallResults;
+
+    try
+    {
+      scryfallResults = await _scryfallClient.Search(query, cancellationToken);
+    }
+    catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+    {
+      return [];
+    }
+
+    var oracleIds = scryfallResults.Data.Select(c => c.OracleId).ToArray();
+
+    var knownCards = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
+      .Where(c => oracleIds.Contains(c.ScryfallId))
+      .AsNoTracking()
+      .ToDictionaryAsync(c => c.ScryfallId, cancellationToken);
+
+    return scryfallResults.Data.Select(card =>
+    {
+      var known = knownCards.GetValueOrDefault(card.OracleId);
+
+      return known is not null
+        ? new CardSearchResultDetail
+        {
+          ScryfallId = known.ScryfallId,
+          Name = known.Name,
+          ScryfallImageUri = known.CanonicalPrinting.ScryfallImageUris.Normal,
+          Known = true
+        }
+        : new CardSearchResultDetail
+        {
+          ScryfallId = card.OracleId,
+          Name = card.Name,
+          ScryfallImageUri = (card.CardFaces?[0]?.ImageUris ?? card.ImageUris)?.Normal,
+          Known = false
+        };
+    });
   }
 
   private static CardFormatStatusDetail GetFormatStatus(Card card, Format format, DateOnly date)

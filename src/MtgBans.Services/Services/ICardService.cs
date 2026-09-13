@@ -21,6 +21,7 @@ public interface ICardService
   Task RefreshExpansions(CancellationToken cancellationToken = default);
   Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken);
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
+  Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService, IDisposable
@@ -113,6 +114,17 @@ public class CardService : ICardService, IDisposable
     }
 
     await _context.SaveChangesAsync(cancellationToken);
+  }
+
+  public async Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default)
+  {
+    var card = await _context.Cards
+      .Include(c => c.CanonicalPrinting)
+      .Include(c => c.Classifications)
+      .AsNoTracking()
+      .FirstOrDefaultAsync(c => c.ScryfallId == scryfallId, cancellationToken);
+
+    return card is null ? null : EntityToModel(card);
   }
 
   public async Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken)

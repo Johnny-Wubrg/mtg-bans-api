@@ -23,11 +23,13 @@ public interface ICardService
   Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken);
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
   Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
-  Task<IEnumerable<CardSearchResultDetail>> Search(string query, CancellationToken cancellationToken = default);
+  Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService, IDisposable
 {
+  private const int SEARCH_RESULT_LIMIT = 20;
+
   private readonly IScryfallClient _scryfallClient;
   private readonly MtgBansContext _context;
   private readonly SemaphoreSlim _rateLimiter = new(10, 10);
@@ -150,9 +152,8 @@ public class CardService : ICardService, IDisposable
       .ToList();
     return detail;
   }
-
-  public async Task<IEnumerable<CardSearchResultDetail>> Search(string query,
-    CancellationToken cancellationToken = default)
+  
+  public async Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default)
   {
     ScryfallDataset<ScryfallCard> scryfallResults;
 
@@ -162,10 +163,13 @@ public class CardService : ICardService, IDisposable
     }
     catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
     {
-      return [];
+      return new CardSearchDetail { Results = [], HasMore = false };
     }
 
-    var oracleIds = scryfallResults.Data.Select(c => c.OracleId).ToArray();
+    var hasMore = scryfallResults.HasMore || scryfallResults.Data.Length > SEARCH_RESULT_LIMIT;
+    var cards = scryfallResults.Data.Take(SEARCH_RESULT_LIMIT).ToArray();
+
+    var oracleIds = cards.Select(c => c.OracleId).ToArray();
 
     var knownCards = await _context.Cards
       .Include(c => c.CanonicalPrinting)
@@ -173,7 +177,7 @@ public class CardService : ICardService, IDisposable
       .AsNoTracking()
       .ToDictionaryAsync(c => c.ScryfallId, cancellationToken);
 
-    return scryfallResults.Data.Select(card =>
+    var results = cards.Select(card =>
     {
       var known = knownCards.GetValueOrDefault(card.OracleId);
 
@@ -193,6 +197,8 @@ public class CardService : ICardService, IDisposable
           Known = false
         };
     });
+
+    return new CardSearchDetail { Results = results, HasMore = hasMore };
   }
 
   private static CardFormatStatusDetail GetFormatStatus(Card card, Format format, DateOnly date)

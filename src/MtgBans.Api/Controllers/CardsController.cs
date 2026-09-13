@@ -39,7 +39,7 @@ public class CardsController : ControllerBase
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpGet("search")]
-  public Task<IEnumerable<CardSearchResultDetail>> Search(string q, CancellationToken cancellationToken) =>
+  public Task<CardSearchDetail> Search(string q, CancellationToken cancellationToken) =>
     _cardService.Search(q, cancellationToken);
 
   /// <summary>

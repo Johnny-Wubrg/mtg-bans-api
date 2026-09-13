@@ -47,4 +47,9 @@ public class CardDetail
   /// The card's current ban status in each format
   /// </summary>
   public IEnumerable<CardFormatStatusDetail> FormatStatuses { get; set; }
+
+  /// <summary>
+  /// History of the card's legality changes across all formats, in chronological order
+  /// </summary>
+  public IEnumerable<CardLegalityEventDetail> LegalityEvents { get; set; }
 }

@@ -123,6 +123,7 @@ public class CardService : ICardService, IDisposable
       .Include(c => c.Classifications)
       .Include(c => c.Printings).ThenInclude(p => p.Expansion).ThenInclude(e => e.Legalities)
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
+      .Include(c => c.LegalityEvents).ThenInclude(e => e.Format)
       .AsSplitQuery()
       .AsNoTracking()
       .FirstOrDefaultAsync(c => c.ScryfallId == scryfallId, cancellationToken);
@@ -134,6 +135,17 @@ public class CardService : ICardService, IDisposable
 
     var detail = EntityToModel(card);
     detail.FormatStatuses = formats.Select(format => GetFormatStatus(card, format, date)).ToList();
+    detail.LegalityEvents = card.LegalityEvents
+      .Where(e => e.FormatId != null || e.Status.Type == CardLegalityStatusType.Release)
+      .OrderBy(e => e.DateEffective)
+      .Select(e => new CardLegalityEventDetail
+      {
+        Format = e.Format?.Name,
+        Status = e.Status.Label,
+        Color = e.Status.Color,
+        Date = e.DateEffective
+      })
+      .ToList();
     return detail;
   }
 

@@ -27,7 +27,7 @@ public class AnnouncementService : IAnnouncementService
   public async Task<IEnumerable<AnnouncementDetail>> GetAll(CancellationToken cancellationToken = default)
   {
     var announcements = await _context.Announcements.AsNoTracking()
-      .Include(a => a.Sources)
+      .Include(a => a.Sources).ThenInclude(s => s.Archive)
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classifications)
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.CanonicalPrinting)
       .Include(a => a.Changes).ThenInclude(e => e.Format)
@@ -114,9 +114,11 @@ public class AnnouncementService : IAnnouncementService
       Summary = announcement.Summary,
       Sources = announcement.Sources.Select(s => new PublicationDetail
       {
+        Id = s.Id,
         Title = s.Title,
         DatePublished = s.DatePublished,
-        Uri = s.Uri
+        Uri = s.Uri,
+        HasArchive = !string.IsNullOrEmpty(s.Archive?.ContentHtml)
       }),
       Changesets = announcement.Changes.GroupBy(e => e.FormatId).Select(f => new AnnouncementFormatDetail
       {

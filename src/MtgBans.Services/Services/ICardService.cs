@@ -8,9 +8,7 @@ using MtgBans.Models.Formats;
 using MtgBans.Scryfall.Clients;
 using MtgBans.Scryfall.Models;
 using MtgBans.Services.Constants;
-using MtgBans.Services.Extensions;
 using Refit;
-using ScryfallImages = MtgBans.Data.Entities.ScryfallImages;
 
 namespace MtgBans.Services.Services;
 
@@ -151,7 +149,8 @@ public class CardService : ICardService, IDisposable
         Format = e.Format?.Name,
         Status = e.Status.Label,
         Color = e.Status.Color,
-        Date = e.DateEffective
+        Date = e.DateEffective,
+        AnnouncementId = e.AnnouncementId
       })
       .ToList();
     detail.Rationale = MapRationale(rationale);

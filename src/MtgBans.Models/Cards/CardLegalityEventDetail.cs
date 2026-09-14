@@ -28,4 +28,10 @@ public class CardLegalityEventDetail
   /// </summary>
   /// <example>2019-11-22</example>
   public DateOnly Date { get; set; }
+
+  /// <summary>
+  /// Id of the announcement that made this change, if any
+  /// </summary>
+  /// <example>42</example>
+  public int? AnnouncementId { get; set; }
 }

@@ -135,6 +135,9 @@ public class CardService : ICardService, IDisposable
     if (card is null) return null;
 
     var formats = await _context.Formats.OrderBy(f => f.DisplayOrder).ToListAsync(cancellationToken);
+    var rationale = await _context.CardLegalityRationales
+      .AsNoTracking()
+      .FirstOrDefaultAsync(r => r.CardScryfallId == scryfallId && r.FormatId == null, cancellationToken);
     var date = DateOnly.FromDateTime(DateTime.Now);
 
     var detail = EntityToModel(card);
@@ -150,7 +153,21 @@ public class CardService : ICardService, IDisposable
         Date = e.DateEffective
       })
       .ToList();
+    detail.Rationale = MapRationale(rationale);
     return detail;
+  }
+
+  private static RationaleDetail MapRationale(CardLegalityRationale rationale)
+  {
+    if (string.IsNullOrWhiteSpace(rationale?.Text)) return null;
+
+    return new()
+    {
+      Text = rationale.Text,
+      AiModel = rationale.AiModel,
+      DateUpdated = rationale.DateUpdated,
+      DateApproved = rationale.DateApproved
+    };
   }
   
   public async Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default)

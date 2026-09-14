@@ -64,6 +64,7 @@ public class AnnouncementService : IAnnouncementService
       Sources = existingSources.Concat(newSources).ToArray(),
       DateAnnounced = request.DateAnnounced,
       DateEffective = request.DateEffective,
+      DateNextProjected = request.DateNextProjected,
       Changes = new List<CardLegalityEvent>()
     };
 
@@ -109,6 +110,7 @@ public class AnnouncementService : IAnnouncementService
       Id = announcement.Id,
       DateAnnounced = announcement.DateAnnounced,
       DateEffective = announcement.DateEffective,
+      DateNextProjected = announcement.DateNextProjected,
       Summary = announcement.Summary,
       Sources = announcement.Sources.Select(s => new PublicationDetail
       {

@@ -17,6 +17,12 @@ public class AnnouncementPublishRequest
   public DateOnly DateEffective { get; set; }
 
   /// <summary>
+  /// Projected date of the next announcement, if known
+  /// </summary>
+  /// <example>1997-03-14</example>
+  public DateOnly DateNextProjected { get; set; }
+
+  /// <summary>
   /// Summary or title of the announcement
   /// </summary>
   /// <example>March 14, 1997, Banned and Restricted Announcement</example>

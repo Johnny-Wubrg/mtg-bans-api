@@ -62,6 +62,23 @@ public class CardsController : ControllerBase
     _cardService.GetTimelines(cancellationToken);
 
   /// <summary>
+  /// Submit anonymous feedback on the accuracy of a card's AI-generated rationale
+  /// </summary>
+  /// <param name="scryfallId"></param>
+  /// <param name="request"></param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpPost("{scryfallId:guid}/rationale/vote")]
+  public async Task<IActionResult> VoteRationale(Guid scryfallId, RationaleVoteRequest request,
+    CancellationToken cancellationToken)
+  {
+    if (request.Direction != 1 && request.Direction != -1) return BadRequest("Direction must be 1 or -1.");
+
+    var voted = await _cardService.VoteRationale(scryfallId, request.Direction, cancellationToken);
+    return voted ? NoContent() : NotFound();
+  }
+
+  /// <summary>
   /// Get card data from database or Scryfall
   /// </summary>
   /// <param name="cardNames"></param>

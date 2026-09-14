@@ -13,6 +13,8 @@ public class MtgBansContext(DbContextOptions<MtgBansContext> options) : DbContex
   public DbSet<Announcement> Announcements { get; set; }
   public DbSet<Publication> Publications { get; set; }
   public DbSet<Expansion> Expansions { get; set; }
+  public DbSet<CardLegalityRationale> CardLegalityRationales { get; set; }
+  public DbSet<CardLegalityRationaleVote> CardLegalityRationaleVotes { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -21,7 +23,10 @@ public class MtgBansContext(DbContextOptions<MtgBansContext> options) : DbContex
       .WithMany()
       .HasForeignKey(c => c.CanonicalId)
       .OnDelete(DeleteBehavior.Restrict);
-    
+
+    modelBuilder.Entity<CardLegalityRationale>().ToTable("card_legality_rationale");
+    modelBuilder.Entity<CardLegalityRationaleVote>().ToTable("card_legality_rationale_vote");
+
     base.OnModelCreating(modelBuilder);
   }
 }

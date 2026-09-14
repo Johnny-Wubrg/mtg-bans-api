@@ -24,6 +24,7 @@ public interface ICardService
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
   Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
   Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default);
+  Task<bool> VoteRationale(Guid scryfallId, int direction, CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService, IDisposable
@@ -135,6 +136,9 @@ public class CardService : ICardService, IDisposable
     if (card is null) return null;
 
     var formats = await _context.Formats.OrderBy(f => f.DisplayOrder).ToListAsync(cancellationToken);
+    var rationale = await _context.CardLegalityRationales
+      .AsNoTracking()
+      .FirstOrDefaultAsync(r => r.CardScryfallId == scryfallId && r.FormatId == null, cancellationToken);
     var date = DateOnly.FromDateTime(DateTime.Now);
 
     var detail = EntityToModel(card);
@@ -150,9 +154,41 @@ public class CardService : ICardService, IDisposable
         Date = e.DateEffective
       })
       .ToList();
+    detail.Rationale = MapRationale(rationale);
     return detail;
   }
-  
+
+  private static RationaleDetail MapRationale(CardLegalityRationale rationale)
+  {
+    if (string.IsNullOrWhiteSpace(rationale?.Text)) return null;
+
+    return new()
+    {
+      Text = rationale.Text,
+      AiModel = rationale.AiModel,
+      DateUpdated = rationale.DateUpdated,
+      DateApproved = rationale.DateApproved
+    };
+  }
+
+  public async Task<bool> VoteRationale(Guid scryfallId, int direction, CancellationToken cancellationToken = default)
+  {
+    var rationale = await _context.CardLegalityRationales
+      .FirstOrDefaultAsync(r => r.CardScryfallId == scryfallId && r.FormatId == null, cancellationToken);
+
+    if (rationale is null) return false;
+
+    await _context.CardLegalityRationaleVotes.AddAsync(new()
+    {
+      RationaleId = rationale.Id,
+      DateApplied = DateTime.UtcNow,
+      Direction = (sbyte)direction
+    }, cancellationToken);
+
+    await _context.SaveChangesAsync(cancellationToken);
+    return true;
+  }
+
   public async Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default)
   {
     ScryfallDataset<ScryfallCard> scryfallResults;

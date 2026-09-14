@@ -52,4 +52,9 @@ public class CardDetail
   /// History of the card's legality changes across all formats, in chronological order
   /// </summary>
   public IEnumerable<CardLegalityEventDetail> LegalityEvents { get; set; }
+
+  /// <summary>
+  /// Explanation of why the card was banned or restricted, if available
+  /// </summary>
+  public RationaleDetail Rationale { get; set; }
 }

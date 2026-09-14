@@ -9,6 +9,7 @@ public class Announcement
 
   public DateOnly DateAnnounced { get; set; }
   public DateOnly DateEffective { get; set; }
+  public DateOnly DateNextProjected { get; set; }
 
   [MaxLength(200)]
   public string Summary { get; set; }

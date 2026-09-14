@@ -9,9 +9,9 @@ public class CardLegalityRationaleVote
   public int Id { get; set; }
 
   [Required]
-  public Guid CardScryfallId { get; set; }
+  public int RationaleId { get; set; }
 
-  [ForeignKey(nameof(CardScryfallId))]
+  [ForeignKey(nameof(RationaleId))]
   public CardLegalityRationale Rationale { get; set; }
   
   public DateTime DateApplied { get; set; }

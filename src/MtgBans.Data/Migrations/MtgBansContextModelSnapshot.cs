@@ -792,7 +792,7 @@ namespace MtgBans.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_printings_expansions_expansion_scryfall_id");
 
-                    b.OwnsOne("MtgBans.Data.Entities.ScryfallImages", "ScryfallImageUris", b1 =>
+                    b.OwnsOne("MtgBans.Data.Entities.Printing.ScryfallImageUris#MtgBans.Data.Entities.ScryfallImages", "ScryfallImageUris", b1 =>
                         {
                             b1.Property<Guid>("PrintingScryfallId")
                                 .HasColumnType("uuid")
@@ -812,7 +812,7 @@ namespace MtgBans.Data.Migrations
 
                             b1.HasKey("PrintingScryfallId");
 
-                            b1.ToTable("printings");
+                            b1.ToTable("printings", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PrintingScryfallId")

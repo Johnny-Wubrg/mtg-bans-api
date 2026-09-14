@@ -23,7 +23,9 @@ public class CardLegalityEvent
   
   [Required]
   public int StatusId { get; set; }
-  
+
   [ForeignKey(nameof(StatusId))]
   public CardLegalityStatus Status { get; set; }
+
+  public int? AnnouncementId { get; set; }
 }

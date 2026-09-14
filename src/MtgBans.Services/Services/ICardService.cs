@@ -24,6 +24,7 @@ public interface ICardService
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
   Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
   Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default);
+  Task<bool> VoteRationale(Guid scryfallId, int direction, CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService, IDisposable
@@ -169,7 +170,25 @@ public class CardService : ICardService, IDisposable
       DateApproved = rationale.DateApproved
     };
   }
-  
+
+  public async Task<bool> VoteRationale(Guid scryfallId, int direction, CancellationToken cancellationToken = default)
+  {
+    var rationale = await _context.CardLegalityRationales
+      .FirstOrDefaultAsync(r => r.CardScryfallId == scryfallId && r.FormatId == null, cancellationToken);
+
+    if (rationale is null) return false;
+
+    await _context.CardLegalityRationaleVotes.AddAsync(new()
+    {
+      RationaleId = rationale.Id,
+      DateApplied = DateTime.UtcNow,
+      Direction = (sbyte)direction
+    }, cancellationToken);
+
+    await _context.SaveChangesAsync(cancellationToken);
+    return true;
+  }
+
   public async Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default)
   {
     ScryfallDataset<ScryfallCard> scryfallResults;

@@ -66,6 +66,7 @@ public class CardService : ICardService, IDisposable
       .Include(c => c.Aliases)
       .Include(c => c.Classifications)
       .AsNoTracking()
+      .AsSplitQuery()
       .ToListAsync(cancellationToken);
 
     var existingSets =
@@ -304,6 +305,7 @@ public class CardService : ICardService, IDisposable
       .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
       .Include(c => c.Classifications)
       .AsNoTracking()
+      .AsSplitQuery()
       .ToListAsync(cancellationToken);
 
     var formats = await _context.Formats
@@ -368,6 +370,7 @@ public class CardService : ICardService, IDisposable
       .Include(e => e.LegalityEvents).ThenInclude(l => l.Status)
       .Include(c => c.Classifications)
       .AsNoTracking()
+      .AsSplitQuery()
       .ToListAsync(cancellationToken);
 
     return cards.Select(c => new CardTimelineDetail

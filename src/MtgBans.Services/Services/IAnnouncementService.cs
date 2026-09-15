@@ -27,6 +27,7 @@ public class AnnouncementService : IAnnouncementService
   public async Task<IEnumerable<AnnouncementDetail>> GetAll(CancellationToken cancellationToken = default)
   {
     var announcements = await _context.Announcements.AsNoTracking()
+      .AsSplitQuery()
       .Include(a => a.Sources).ThenInclude(s => s.Archive)
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.Classifications)
       .Include(a => a.Changes).ThenInclude(e => e.Card).ThenInclude(c => c.CanonicalPrinting)

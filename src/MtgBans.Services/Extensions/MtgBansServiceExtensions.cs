@@ -12,13 +12,13 @@ public static class MtgBansServiceExtensions
   public static void AddMtgBans(this IServiceCollection services, IConfiguration configuration)
   {
     services.AddScryfall(configuration);
-    
+
     services.AddTransient<IAnnouncementService, AnnouncementService>();
     services.AddTransient<ICardService, CardService>();
     services.AddTransient<IExpansionService, ExpansionService>();
     services.AddTransient<IFormatService, FormatService>();
     services.AddTransient<IPublicationService, PublicationService>();
-    
+
     services.AddDbContext<MtgBansContext>(options =>
       options.UseNpgsql(
           configuration.GetConnectionString("AppDb"), x => x

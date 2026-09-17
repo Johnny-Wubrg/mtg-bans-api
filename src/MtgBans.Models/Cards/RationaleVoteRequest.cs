@@ -10,4 +10,9 @@ public class RationaleVoteRequest
   /// </summary>
   /// <example>1</example>
   public int Direction { get; set; }
+
+  /// <summary>
+  /// Single-use nonce previously issued for this rationale
+  /// </summary>
+  public Guid Nonce { get; set; }
 }

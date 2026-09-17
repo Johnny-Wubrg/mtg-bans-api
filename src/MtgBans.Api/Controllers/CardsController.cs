@@ -4,6 +4,7 @@ using MtgBans.Models.Cards;
 using MtgBans.Models.Formats;
 using MtgBans.Services.Extensions;
 using MtgBans.Services.Services;
+using static MtgBans.Services.Services.RationaleVoteResult;
 
 namespace MtgBans.Api.Controllers;
 
@@ -62,6 +63,21 @@ public class CardsController : ControllerBase
     _cardService.GetTimelines(cancellationToken);
 
   /// <summary>
+  /// Issue a single-use nonce authorizing one vote on a card's rationale
+  /// </summary>
+  /// <param name="scryfallId"></param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpPost("{scryfallId:guid}/rationale/vote/nonce")]
+  [ApiKeyAuthentication]
+  public async Task<IActionResult> IssueRationaleVoteNonce(Guid scryfallId, CancellationToken cancellationToken)
+  {
+    var nonce = await _cardService.IssueRationaleVoteNonce(scryfallId, cancellationToken);
+    if (nonce is null) return NotFound();
+    return Ok(new RationaleVoteNonceResult { Nonce = nonce.Value });
+  }
+
+  /// <summary>
   /// Submit anonymous feedback on the accuracy of a card's AI-generated rationale
   /// </summary>
   /// <param name="scryfallId"></param>
@@ -69,12 +85,20 @@ public class CardsController : ControllerBase
   /// <param name="cancellationToken"></param>
   /// <returns></returns>
   [HttpPost("{scryfallId:guid}/rationale/vote")]
+  [ApiKeyAuthentication]
   public async Task<IActionResult> VoteRationale(Guid scryfallId, RationaleVoteRequest request,
     CancellationToken cancellationToken)
   {
     if (request.Direction != 1 && request.Direction != -1) return BadRequest("Direction must be 1 or -1.");
 
-    var voted = await _cardService.VoteRationale(scryfallId, request.Direction, cancellationToken);
-    return voted ? NoContent() : NotFound();
+    var result = await _cardService.VoteRationale(scryfallId, request.Direction, request.Nonce, cancellationToken);
+
+    return result switch
+    {
+      Success => NoContent(),
+      RationaleNotFound => NotFound(),
+      InvalidNonce => Conflict(),
+      _ => throw new ArgumentOutOfRangeException()
+    };
   }
 }

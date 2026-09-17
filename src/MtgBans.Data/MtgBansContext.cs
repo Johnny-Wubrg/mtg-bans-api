@@ -15,6 +15,7 @@ public class MtgBansContext(DbContextOptions<MtgBansContext> options) : DbContex
   public DbSet<Expansion> Expansions { get; set; }
   public DbSet<CardLegalityRationale> CardLegalityRationales { get; set; }
   public DbSet<CardLegalityRationaleVote> CardLegalityRationaleVotes { get; set; }
+  public DbSet<CardLegalityRationaleVoteNonce> CardLegalityRationaleVoteNonces { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {

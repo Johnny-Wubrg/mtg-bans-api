@@ -1,26 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
-using MtgBans.Exceptions;
 using MtgBans.Models.Announcements;
-using MtgBans.Models.Cards;
 
 namespace MtgBans.Services.Services;
 
 public interface IAnnouncementService
 {
-  Task Publish(AnnouncementPublishRequest request, CancellationToken cancellationToken = default);
   Task<IEnumerable<AnnouncementDetail>> GetAll(CancellationToken cancellationToken = default);
 }
 
 public class AnnouncementService : IAnnouncementService
 {
-  private readonly ICardService _cardService;
   private readonly MtgBansContext _context;
 
-  public AnnouncementService(ICardService cardService, MtgBansContext context)
+  public AnnouncementService(MtgBansContext context)
   {
-    _cardService = cardService;
     _context = context;
   }
 
@@ -42,66 +37,6 @@ public class AnnouncementService : IAnnouncementService
     }
 
     return announcements.Select(EntityToModel);
-  }
-
-  public async Task Publish(AnnouncementPublishRequest request, CancellationToken cancellationToken = default)
-  {
-    var existingSources = await _context.Publications
-      .Where(s => request.Sources.Any(u => s.Uri == u))
-      .ToListAsync(cancellationToken);
-
-    var newSources = request.Sources
-      .Where(u => existingSources.All(s => s.Uri != u))
-      .Select(u => new Publication
-      {
-        DatePublished = request.DateAnnounced,
-        Title = request.Summary,
-        Uri = u,
-      });
-
-    var announcement = new Announcement
-    {
-      Summary = request.Summary,
-      Sources = existingSources.Concat(newSources).ToArray(),
-      DateAnnounced = request.DateAnnounced,
-      DateEffective = request.DateEffective,
-      DateNextProjected = request.DateNextProjected,
-      Changes = new List<CardLegalityEvent>()
-    };
-
-    var cardNames = request.Changes.SelectMany(e => e.Cards).Distinct();
-    var cards = await _cardService.ResolveCards(cardNames, cancellationToken);
-    var cardModels = cards as CardDetail[] ?? cards.ToArray();
-    var formats = await _context.Formats.ToListAsync(cancellationToken: cancellationToken);
-    var statuses = await _context.CardLegalityStatuses.ToListAsync(cancellationToken: cancellationToken);
-
-    foreach (var change in request.Changes)
-    {
-      var format = formats.SingleOrDefault(e => e.Name == change.Format);
-      if (format is null) throw new InvalidEntryOperation(nameof(change.Format), change.Format);
-
-      var status = statuses.SingleOrDefault(e => e.Label == change.Type);
-      if (status is null) throw new InvalidEntryOperation(nameof(change.Type), change.Type);
-
-      foreach (var card in change.Cards)
-      {
-        var evt = new CardLegalityEvent
-        {
-          FormatId = format?.Id,
-          CardScryfallId = cardModels.First(e =>
-            string.Equals(e.Name, card, StringComparison.InvariantCultureIgnoreCase) ||
-            e.Aliases.Contains(card, StringComparer.InvariantCultureIgnoreCase)
-          ).ScryfallId,
-          DateEffective = request.DateEffective,
-          StatusId = status.Id
-        };
-
-        announcement.Changes.Add(evt);
-      }
-    }
-
-    await _context.Announcements.AddAsync(announcement, cancellationToken);
-    await _context.SaveChangesAsync(cancellationToken);
   }
 
   public static AnnouncementDetail EntityToModel(Announcement announcement)

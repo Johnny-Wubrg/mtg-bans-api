@@ -77,26 +77,4 @@ public class CardsController : ControllerBase
     var voted = await _cardService.VoteRationale(scryfallId, request.Direction, cancellationToken);
     return voted ? NoContent() : NotFound();
   }
-
-  /// <summary>
-  /// Get card data from database or Scryfall
-  /// </summary>
-  /// <param name="cardNames"></param>
-  /// <param name="cancellationToken"></param>
-  /// <returns></returns>
-  [HttpPost]
-  [ApiKeyAuthentication]
-  [Obsolete("Was created for testing purposes only.")]
-  public Task<IEnumerable<CardDetail>> ResolveCards(string[] cardNames, CancellationToken cancellationToken) =>
-    _cardService.ResolveCards(cardNames, cancellationToken);
-
-  /// <summary>
-  /// Refresh printings for every card
-  /// </summary>
-  /// <param name="cancellationToken"></param>
-  /// <returns></returns>
-  [HttpPost("refresh-sets")]
-  [ApiKeyAuthentication]
-  public Task RefreshExpansions(CancellationToken cancellationToken) =>
-    _cardService.RefreshExpansions(cancellationToken);
 }

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MtgBans.Api.Filters;
-using MtgBans.Exceptions;
 using MtgBans.Models.Announcements;
 using MtgBans.Services.Services;
 
@@ -25,24 +23,4 @@ public class AnnouncementsController : ControllerBase
   [HttpGet]
   public Task<IEnumerable<AnnouncementDetail>> Get(CancellationToken cancellationToken) =>
     _announcementService.GetAll(cancellationToken);
-
-  /// <summary>
-  /// Publish a new announcement
-  /// </summary>
-  /// <param name="request"></param>
-  [HttpPost]
-  [ProducesResponseType(StatusCodes.Status204NoContent)]
-  [ApiKeyAuthentication]
-  public async Task<IActionResult> Publish(AnnouncementPublishRequest request, CancellationToken cancellationToken)
-  {
-    try
-    {
-      await _announcementService.Publish(request, cancellationToken);
-      return Created();
-    }
-    catch (InvalidEntryOperation ex)
-    {
-      return UnprocessableEntity(new { ex.Message });
-    }
-  }
 }

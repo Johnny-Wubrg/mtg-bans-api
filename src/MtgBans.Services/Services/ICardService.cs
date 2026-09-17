@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using MtgBans.Data;
 using MtgBans.Data.Entities;
@@ -10,13 +11,23 @@ using Refit;
 
 namespace MtgBans.Services.Services;
 
+public enum RationaleVoteResult
+{
+  Success,
+  RationaleNotFound,
+  InvalidNonce
+}
+
 public interface ICardService
 {
   Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken);
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
   Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
   Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default);
-  Task<bool> VoteRationale(Guid scryfallId, int direction, CancellationToken cancellationToken = default);
+  Task<Guid?> IssueRationaleVoteNonce(Guid scryfallId, CancellationToken cancellationToken = default);
+
+  Task<RationaleVoteResult> VoteRationale(Guid scryfallId, int direction, Guid nonce,
+    CancellationToken cancellationToken = default);
 }
 
 public class CardService : ICardService
@@ -83,12 +94,40 @@ public class CardService : ICardService
     };
   }
 
-  public async Task<bool> VoteRationale(Guid scryfallId, int direction, CancellationToken cancellationToken = default)
+  public async Task<Guid?> IssueRationaleVoteNonce(Guid scryfallId, CancellationToken cancellationToken = default)
   {
     var rationale = await _context.CardLegalityRationales
       .FirstOrDefaultAsync(r => r.CardScryfallId == scryfallId && r.FormatId == null, cancellationToken);
 
-    if (rationale is null) return false;
+    if (rationale is null) return null;
+
+    var nonce = new CardLegalityRationaleVoteNonce
+    {
+      Id = new Guid(RandomNumberGenerator.GetBytes(16)),
+      RationaleId = rationale.Id,
+      DateIssued = DateTime.UtcNow
+    };
+
+    await _context.CardLegalityRationaleVoteNonces.AddAsync(nonce, cancellationToken);
+    await _context.SaveChangesAsync(cancellationToken);
+    return nonce.Id;
+  }
+
+  public async Task<RationaleVoteResult> VoteRationale(Guid scryfallId, int direction, Guid nonce,
+    CancellationToken cancellationToken = default)
+  {
+    var rationale = await _context.CardLegalityRationales
+      .FirstOrDefaultAsync(r => r.CardScryfallId == scryfallId && r.FormatId == null, cancellationToken);
+
+    if (rationale is null) return RationaleVoteResult.RationaleNotFound;
+
+    await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+    var consumed = await _context.CardLegalityRationaleVoteNonces
+      .Where(n => n.Id == nonce && n.RationaleId == rationale.Id && n.DateConsumed == null)
+      .ExecuteUpdateAsync(s => s.SetProperty(n => n.DateConsumed, DateTime.UtcNow), cancellationToken);
+
+    if (consumed == 0) return RationaleVoteResult.InvalidNonce;
 
     await _context.CardLegalityRationaleVotes.AddAsync(new()
     {
@@ -98,7 +137,9 @@ public class CardService : ICardService
     }, cancellationToken);
 
     await _context.SaveChangesAsync(cancellationToken);
-    return true;
+    await transaction.CommitAsync(cancellationToken);
+
+    return RationaleVoteResult.Success;
   }
 
   public async Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default)

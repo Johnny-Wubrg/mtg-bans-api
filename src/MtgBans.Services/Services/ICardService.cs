@@ -294,7 +294,7 @@ public class CardService : ICardService
         Color = g.Key.Color,
         Cards = g
           .OrderBy(c => c.Card.SortName)
-          .Select(c => EntityToModel(c.Card))
+          .Select(c => EntityToModel(c.Card, date))
           .ToList(),
       });
   }

@@ -48,6 +48,7 @@ public class AnnouncementService : IAnnouncementService
       DateEffective = announcement.DateEffective,
       DateNextProjected = announcement.DateNextProjected,
       Summary = announcement.Summary,
+      IsFeatured = announcement.IsFeatured,
       Sources = announcement.Sources.Select(s => new PublicationDetail
       {
         Id = s.Id,

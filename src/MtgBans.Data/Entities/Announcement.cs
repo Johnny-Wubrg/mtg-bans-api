@@ -13,7 +13,9 @@ public class Announcement
 
   [MaxLength(200)]
   public string Summary { get; set; }
-  
+
+  public bool IsFeatured { get; set; }
+
   public ICollection<Publication> Sources { get; set; }
   
   public ICollection<CardLegalityEvent> Changes { get; set; }

@@ -28,7 +28,7 @@ public class AnnouncementDetail
   /// Projected date of the next announcement, if known
   /// </summary>
   /// <example>1997-03-14</example>
-  public DateOnly DateNextProjected { get; set; }
+  public DateOnly? DateNextProjected { get; set; }
 
   /// <summary>
   /// Summary or title of the announcement

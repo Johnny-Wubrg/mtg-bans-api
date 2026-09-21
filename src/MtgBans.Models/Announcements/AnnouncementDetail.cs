@@ -37,6 +37,12 @@ public class AnnouncementDetail
   public string Summary { get; set; }
 
   /// <summary>
+  /// Whether this announcement is eligible for site-wide promotion, such as the homepage
+  /// banner.
+  /// </summary>
+  public bool IsFeatured { get; set; }
+
+  /// <summary>
   /// References to announcement articles
   /// </summary>
   /// <example>["https://www.example.com/path-to-announcement"]</example>

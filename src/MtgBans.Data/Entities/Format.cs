@@ -22,4 +22,6 @@ public class Format
   public string Slug { get; set; }
   
   public ICollection<FormatEvent> Events { get; set; }
+
+  public ICollection<FormatStatusWeight> StatusWeights { get; set; }
 }

@@ -16,6 +16,7 @@ public class MtgBansContext(DbContextOptions<MtgBansContext> options) : DbContex
   public DbSet<CardLegalityRationale> CardLegalityRationales { get; set; }
   public DbSet<CardLegalityRationaleVote> CardLegalityRationaleVotes { get; set; }
   public DbSet<CardLegalityRationaleVoteNonce> CardLegalityRationaleVoteNonces { get; set; }
+  public DbSet<CardNotorietyIndex> CardNotorietyIndices { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -24,6 +25,23 @@ public class MtgBansContext(DbContextOptions<MtgBansContext> options) : DbContex
       .WithMany()
       .HasForeignKey(c => c.CanonicalId)
       .OnDelete(DeleteBehavior.Restrict);
+
+    modelBuilder.Entity<Card>()
+      .HasOne(c => c.NotorietyIndex)
+      .WithOne(n => n.Card)
+      .HasForeignKey<CardNotorietyIndex>(n => n.CardScryfallId);
+
+    modelBuilder.Entity<FormatStatusWeight>()
+      .Property(w => w.Weight)
+      .HasColumnType("numeric(5,2)");
+
+    modelBuilder.Entity<CardNotorietyIndex>()
+      .Property(n => n.IndexValue)
+      .HasColumnType("numeric(6,2)");
+
+    modelBuilder.Entity<Classification>()
+      .Property(c => c.NotorietyWeight)
+      .HasColumnType("numeric(3,2)");
 
     modelBuilder.Entity<CardLegalityRationale>().ToTable("card_legality_rationale");
     modelBuilder.Entity<CardLegalityRationaleVote>().ToTable("card_legality_rationale_vote");

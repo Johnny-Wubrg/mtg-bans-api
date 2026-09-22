@@ -63,6 +63,17 @@ public class CardsController : ControllerBase
     _cardService.GetTimelines(cancellationToken);
 
   /// <summary>
+  /// Get the most notorious cards, ranked by ban history. Rank is conveyed by response order
+  /// </summary>
+  /// <param name="limit">Number of cards to return, clamped to [1, 100]</param>
+  /// <param name="cancellationToken"></param>
+  /// <returns></returns>
+  [HttpGet("notoriety")]
+  public Task<IEnumerable<CardNotorietySummary>> GetMostNotorious(int limit = 10,
+    CancellationToken cancellationToken = default) =>
+    _cardService.GetMostNotorious(Math.Clamp(limit, 1, 100), cancellationToken);
+
+  /// <summary>
   /// Issue a single-use nonce authorizing one vote on a card's rationale
   /// </summary>
   /// <param name="scryfallId"></param>

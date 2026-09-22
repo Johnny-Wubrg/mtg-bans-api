@@ -28,4 +28,6 @@ public class Card
   public ICollection<Classification> Classifications { get; set; }
   
   public CardLegalityRationale Rationale { get; set; }
+
+  public CardNotorietyIndex NotorietyIndex { get; set; }
 }

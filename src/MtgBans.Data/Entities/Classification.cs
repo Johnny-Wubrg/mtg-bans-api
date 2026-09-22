@@ -21,6 +21,9 @@ public class Classification
   public DateOnly? DateLifted { get; set; }
   
   public ICollection<Card> Cards { get; set; }
-  
+
   public string DefaultCardRationale { get; set; }
+
+  [Required]
+  public decimal NotorietyWeight { get; set; }
 }

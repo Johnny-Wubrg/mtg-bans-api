@@ -22,6 +22,7 @@ public interface ICardService
 {
   Task<IEnumerable<FormatBansDetail>> GetBans(DateOnly date, CancellationToken cancellationToken);
   Task<IEnumerable<CardTimelineDetail>> GetTimelines(CancellationToken cancellationToken);
+  Task<IEnumerable<CardNotorietySummary>> GetMostNotorious(int limit, CancellationToken cancellationToken = default);
   Task<CardDetail> GetById(Guid scryfallId, CancellationToken cancellationToken = default);
   Task<CardSearchDetail> Search(string query, CancellationToken cancellationToken = default);
   Task<Guid?> IssueRationaleVoteNonce(Guid scryfallId, CancellationToken cancellationToken = default);
@@ -367,6 +368,28 @@ public class CardService : ICardService
           })
     });
   }
+
+  public async Task<IEnumerable<CardNotorietySummary>> GetMostNotorious(int limit,
+    CancellationToken cancellationToken = default)
+  {
+    var entries = await _context.CardNotorietyIndices
+      .Include(n => n.Card).ThenInclude(c => c.CanonicalPrinting)
+      .Where(n => n.Card.CanonicalId != null)
+      .OrderByDescending(n => n.IndexValue)
+      .Take(limit)
+      .AsNoTracking()
+      .ToListAsync(cancellationToken);
+
+    return entries.Select(EntityToNotorietyModel);
+  }
+
+  private static CardNotorietySummary EntityToNotorietyModel(CardNotorietyIndex entity) => new()
+  {
+    ScryfallId = entity.Card.ScryfallId,
+    Name = entity.Card.Name,
+    ScryfallUri = entity.Card.CanonicalPrinting.ScryfallUri,
+    ScryfallImageUri = entity.Card.CanonicalPrinting.ScryfallImageUris.Normal
+  };
 
   public static CardDetail EntityToModel(Card entity) => EntityToModel(entity, DateOnly.FromDateTime(DateTime.Now));
 

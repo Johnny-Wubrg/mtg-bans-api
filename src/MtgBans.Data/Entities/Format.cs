@@ -24,4 +24,6 @@ public class Format
   public ICollection<FormatEvent> Events { get; set; }
 
   public ICollection<FormatStatusWeight> StatusWeights { get; set; }
+  
+  public string[] Aliases { get; set; }
 }

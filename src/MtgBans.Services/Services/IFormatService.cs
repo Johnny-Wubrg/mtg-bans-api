@@ -99,5 +99,6 @@ public class FormatService : IFormatService
     summary.Id = format.Id;
     summary.Name = format.Name;
     summary.Slug = format.Slug;
+    summary.Aliases = format.Aliases ?? [];
   }
 }

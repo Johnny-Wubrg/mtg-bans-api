@@ -376,6 +376,7 @@ public class CardService : ICardService
       .Include(n => n.Card).ThenInclude(c => c.CanonicalPrinting)
       .Where(n => n.Card.CanonicalId != null)
       .OrderByDescending(n => n.IndexValue)
+      .ThenBy(n => n.Card.Name)
       .Take(limit)
       .AsNoTracking()
       .ToListAsync(cancellationToken);

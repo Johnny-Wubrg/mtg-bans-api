@@ -27,4 +27,9 @@ public class CardSearchResultDetail
   /// Whether this card has any banning records with us
   /// </summary>
   public bool Known { get; set; }
+
+  /// <summary>
+  /// The card's highest-priority current limitation, when <see cref="Known"/> is true and it has one
+  /// </summary>
+  public CardSearchLimitationDetail CurrentLimitation { get; set; }
 }

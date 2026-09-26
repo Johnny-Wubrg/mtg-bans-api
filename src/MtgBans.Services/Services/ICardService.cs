@@ -163,21 +163,31 @@ public class CardService : ICardService
 
     var knownCards = await _context.Cards
       .Include(c => c.CanonicalPrinting)
+      .Include(c => c.Printings).ThenInclude(p => p.Expansion).ThenInclude(e => e.Legalities)
+      .Include(c => c.LegalityEvents).ThenInclude(e => e.Status)
+      .Include(c => c.LegalityEvents).ThenInclude(e => e.Format)
       .Where(c => oracleIds.Contains(c.ScryfallId))
       .AsNoTracking()
+      .AsSplitQuery()
       .ToDictionaryAsync(c => c.ScryfallId, cancellationToken);
+
+    var formats = knownCards.Count > 0
+      ? await _context.Formats.OrderBy(f => f.DisplayOrder).ToListAsync(cancellationToken)
+      : [];
+    var date = DateOnly.FromDateTime(DateTime.Now);
 
     var results = cards.Select(card =>
     {
       var known = knownCards.GetValueOrDefault(card.OracleId);
 
       return known is not null
-        ? new()
+        ? new CardSearchResultDetail
         {
           ScryfallId = known.ScryfallId,
           Name = known.Name,
           ScryfallImageUri = known.CanonicalPrinting.ScryfallImageUris.Normal,
-          Known = true
+          Known = true,
+          CurrentLimitation = GetCurrentLimitation(known, formats, date)
         }
         : new CardSearchResultDetail
         {
@@ -189,6 +199,25 @@ public class CardService : ICardService
     });
 
     return new() { Results = results, HasMore = hasMore };
+  }
+
+  private static CardSearchLimitationDetail GetCurrentLimitation(Card card, List<Format> formats, DateOnly date)
+  {
+    var limitations = formats
+      .Select(format => GetFormatStatus(card, format, date))
+      .Where(status => status.Type == CardFormatStatusType.Limitation)
+      .ToList();
+
+    if (limitations.Count == 0) return null;
+
+    var first = limitations[0];
+    return new CardSearchLimitationDetail
+    {
+      Format = first.Format,
+      Status = first.Status,
+      Color = first.Color,
+      AdditionalFormatCount = limitations.Count - 1
+    };
   }
 
   private static CardFormatStatusDetail GetFormatStatus(Card card, Format format, DateOnly date)

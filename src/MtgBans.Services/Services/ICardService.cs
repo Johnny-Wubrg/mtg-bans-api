@@ -233,7 +233,7 @@ public class CardService : ICardService
 
     if (!wasEverLegal)
     {
-      return new() { Format = format.Name, Type = CardFormatStatusType.NotLegal };
+      return new() { Format = format.Name, Slug = format.Slug, Type = CardFormatStatusType.NotLegal };
     }
 
     if (!isCurrentlyLegal)
@@ -242,6 +242,7 @@ public class CardService : ICardService
       return new()
       {
         Format = format.Name,
+        Slug = format.Slug,
         Type = CardFormatStatusType.Rotated,
         Date = rotatedDate
       };
@@ -258,7 +259,7 @@ public class CardService : ICardService
 
     if (lastLimitation.Start is null)
     {
-      return new() { Format = format.Name, Type = CardFormatStatusType.NeverBanned };
+      return new() { Format = format.Name, Slug = format.Slug, Type = CardFormatStatusType.NeverBanned };
     }
 
     if (lastLimitation.End is null)
@@ -266,6 +267,7 @@ public class CardService : ICardService
       return new()
       {
         Format = format.Name,
+        Slug = format.Slug,
         Type = CardFormatStatusType.Limitation,
         Status = lastLimitation.Start.Status.Label,
         Color = lastLimitation.Start.Status.Color,
@@ -276,6 +278,7 @@ public class CardService : ICardService
     return new()
     {
       Format = format.Name,
+      Slug = format.Slug,
       Type = CardFormatStatusType.Unbanned,
       Date = lastLimitation.End.DateEffective
     };
@@ -302,6 +305,7 @@ public class CardService : ICardService
       .Select(format => new FormatBansDetail
       {
         Format = GetFormatName(format, date),
+        Slug = format.Slug,
         Limitations = GetLimitations(date, cards, format.Id)
       });
   }

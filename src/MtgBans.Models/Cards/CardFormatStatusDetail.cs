@@ -43,6 +43,12 @@ public class CardFormatStatusDetail
   public string Format { get; set; }
 
   /// <summary>
+  /// URL slug for the format
+  /// </summary>
+  /// <example>standard</example>
+  public string Slug { get; set; }
+
+  /// <summary>
   /// The kind of status the card currently has in this format
   /// </summary>
   /// <example>Limitation</example>
